@@ -1,0 +1,11 @@
+# https://taskfile.dev
+
+version: "2"
+
+tasks:
+  test:
+    desc: "テスト実行"
+    cmds:
+      - go test -cover ./...
+    sources:
+      - "**/*.go"
