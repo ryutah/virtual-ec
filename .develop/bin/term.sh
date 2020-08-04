@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [[ ! -z $(docker container ls --filter='name=virtual-ec' --format '{{ .ID }}') ]]; then
+  docker container exec -it virtual-ec bash
+  exit
+fi
+
 project_id=$(gcloud config get-value project)
 wd="/root/$(basename ${PWD})"
 
