@@ -13,3 +13,5 @@ RUN wget -q https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz \
  && tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz \
  && echo 'export PATH=${PATH}:/usr/local/go/bin:/root/go/bin' >> .bashrc \
  && rm -f go${GO_VERSION}.linux-amd64.tar.gz
+
+RUN /usr/local/go/bin/go get -u github.com/rjeczalik/interfaces/cmd/interfacer
