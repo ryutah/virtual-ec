@@ -16,6 +16,8 @@ type mockProductRepository struct {
 	mock.Mock
 }
 
+var _ repository.Product = (*mockProductRepository)(nil)
+
 func (m *mockProductRepository) NextID(ctx context.Context) (model.ProductID, error) {
 	args := m.Called(ctx)
 	return args.Get(0).(model.ProductID), args.Error(1)
@@ -25,8 +27,6 @@ func (m *mockProductRepository) Store(ctx context.Context, p model.Product) erro
 	args := m.Called(ctx, p)
 	return args.Error(0)
 }
-
-var _ repository.Product = (*mockProductRepository)(nil)
 
 func TestProductCreator_Append(t *testing.T) {
 	type (
