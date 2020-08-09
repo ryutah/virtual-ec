@@ -8,4 +8,8 @@ tasks:
     cmds:
       - go test -cover ./...
     sources:
-      - "**/*.go"
+      - "./**/*.go"
+  build_devenv:
+    desc: "開発環境Dockerイメージのビルド"
+    cmds:
+      - .develop/build.sh

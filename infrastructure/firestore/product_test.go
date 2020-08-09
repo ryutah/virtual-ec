@@ -12,41 +12,16 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type mockClient struct {
-	Client
-	mock.Mock
-}
-
-var _ Client = (*mockClient)(nil)
-
-func (m *mockClient) AllocateIDs(ctx context.Context, keys []*datastore.Key) ([]*datastore.Key, error) {
-	args := m.Called(ctx, keys)
-	retKeys, ok := args.Get(0).([]*datastore.Key)
-	if !ok {
-		retKeys = nil
-	}
-	return retKeys, args.Error(1)
-}
-
-func (m *mockClient) Put(ctx context.Context, key *datastore.Key, v interface{}) (*datastore.Key, error) {
-	args := m.Called(ctx, key, v)
-	retKey, ok := args.Get(0).(*datastore.Key)
-	if !ok {
-		retKey = nil
-	}
-	return retKey, args.Error(1)
-}
-
 func TestProduct_NextID(t *testing.T) {
 	ctx := context.Background()
 
 	client := new(mockClient)
 	client.
-		On("AllocateIDs", ctx, []*datastore.Key{
+		onAllocateIDs(ctx, []*datastore.Key{
 			datastore.IncompleteKey(Kinds.Product, nil),
 		}).
 		Return([]*datastore.Key{
-			datastore.IDKey(Kinds.Product, 1, nil),
+			ProductKey(1),
 		}, nil)
 
 	product := NewProduct(client)
@@ -61,7 +36,7 @@ func TestProduct_NextID_Failed(t *testing.T) {
 	dummyErr := errors.New("error")
 
 	client := new(mockClient)
-	client.On("AllocateIDs", mock.Anything, mock.Anything).Return(nil, dummyErr)
+	client.onAllocateIDs(mock.Anything, mock.Anything).Return(nil, dummyErr)
 
 	product := NewProduct(client)
 	got, err := product.NextID(context.Background())
@@ -76,11 +51,11 @@ func TestProduct_Store(t *testing.T) {
 
 	client := new(mockClient)
 	client.
-		On("Put", ctx, datastore.IDKey(Kinds.Product, 1, nil), &ProductEntity{
+		onPut(ctx, ProductKey(1), &ProductEntity{
 			Name:  "product",
 			Price: 100,
 		}).
-		Return(datastore.IDKey(Kinds.Product, 1, nil), nil)
+		Return(ProductKey(1), nil)
 
 	product := NewProduct(client)
 	err := product.Store(ctx, *model.NewProduct(1, "product", 100))
@@ -92,11 +67,45 @@ func TestProduct_Store(t *testing.T) {
 func TestProduct_Store_Failed(t *testing.T) {
 	dummyErr := errors.New("error")
 	client := new(mockClient)
-	client.On("Put", mock.Anything, mock.Anything, mock.Anything).Return(nil, dummyErr)
+	client.onPut(mock.Anything, mock.Anything, mock.Anything).Return(nil, dummyErr)
 
 	product := NewProduct(client)
 	err := product.Store(context.Background(), *model.NewProduct(1, "product", 100))
 
 	client.AssertExpectations(t)
+	assert.EqualError(t, err, dummyErr.Error())
+}
+
+func TestProduct_Get(t *testing.T) {
+	ctx := context.Background()
+
+	client := new(mockClient).withStore(mockClientStore{
+		*ProductKey(1): &ProductEntity{
+			Name:  "Product1",
+			Price: 100,
+		},
+	})
+	client.onGet(ctx, ProductKey(1), new(ProductEntity)).Return(nil)
+
+	product := NewProduct(client)
+	got, err := product.Get(ctx, 1)
+
+	client.AssertExpectations(t)
+	assert.Equal(t, model.NewProduct(1, "Product1", 100), got)
+	assert.Nil(t, err)
+}
+
+func TestProduct_Get_Failed(t *testing.T) {
+	dummyErr := errors.New("error")
+	ctx := context.Background()
+
+	client := new(mockClient)
+	client.onGet(mock.Anything, mock.Anything, mock.Anything).Return(dummyErr)
+
+	product := NewProduct(client)
+	got, err := product.Get(ctx, 1)
+
+	client.AssertExpectations(t)
+	assert.Nil(t, got)
 	assert.EqualError(t, err, dummyErr.Error())
 }

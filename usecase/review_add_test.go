@@ -6,56 +6,48 @@ import (
 	"testing"
 
 	"github.com/ryutah/virtual-ec/domain/model"
-	"github.com/ryutah/virtual-ec/domain/repository"
 	. "github.com/ryutah/virtual-ec/usecase"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-type mockReviewRepository struct {
-	mock.Mock
-}
-
-var _ repository.Review = (*mockReviewRepository)(nil)
-
-func (m *mockReviewRepository) NextID(ctx context.Context) (model.ReviewID, error) {
-	args := m.Called(ctx)
-	return args.Get(0).(model.ReviewID), args.Error(1)
-}
-
-func (m *mockReviewRepository) Store(ctx context.Context, review model.Review) error {
-	args := m.Called(ctx, review)
-	return args.Error(0)
-}
-
 func TestReviewAdd_Add(t *testing.T) {
 	type (
+		in struct {
+			productID int
+			req       ReviewAddRequest
+		}
 		mocks struct {
 			repository_review_nextID model.ReviewID
 		}
 		expected struct {
-			args_repository_review_store_review model.Review
-			reviewAddResponse                   *ReviewAddResponse
+			args_repository_review_nextID_productID model.ProductID
+			args_repository_review_store_review     model.Review
+			reviewAddResponse                       *ReviewAddResponse
 		}
 	)
 	cases := []struct {
 		name     string
-		in       ReviewAddRequest
+		in       in
 		mocks    mocks
 		expected expected
 	}{
 		{
 			name: "正常系",
-			in: ReviewAddRequest{
-				ReviewTo: 2,
-				PostedBy: "user1",
-				Rating:   3,
-				Comment:  "Good!",
+			in: in{
+				productID: 4,
+				req: ReviewAddRequest{
+					ReviewTo: 2,
+					PostedBy: "user1",
+					Rating:   3,
+					Comment:  "Good!",
+				},
 			},
 			mocks: mocks{
 				repository_review_nextID: 1,
 			},
 			expected: expected{
+				args_repository_review_nextID_productID: 4,
 				args_repository_review_store_review: *model.NewReview(
 					1, 2, "user1", 3, "Good!",
 				),
@@ -75,11 +67,11 @@ func TestReviewAdd_Add(t *testing.T) {
 			ctx := context.Background()
 
 			reviewRepo := new(mockReviewRepository)
-			reviewRepo.On("NextID", ctx).Return(c.mocks.repository_review_nextID, nil)
+			reviewRepo.On("NextID", ctx, c.expected.args_repository_review_nextID_productID).Return(c.mocks.repository_review_nextID, nil)
 			reviewRepo.On("Store", ctx, c.expected.args_repository_review_store_review).Return(nil)
 
 			review := NewReviewAdd(reviewRepo)
-			got, err := review.Add(ctx, c.in)
+			got, err := review.Add(ctx, c.in.productID, c.in.req)
 
 			reviewRepo.AssertExpectations(t)
 			assert.Equal(t, c.expected.reviewAddResponse, got)
@@ -92,10 +84,10 @@ func TestReviewAdd_Add_Failed_NextID(t *testing.T) {
 	dummyError := errors.New("error")
 
 	reviewRepo := new(mockReviewRepository)
-	reviewRepo.On("NextID", mock.Anything).Return(model.ReviewID(0), dummyError)
+	reviewRepo.On("NextID", mock.Anything, mock.Anything).Return(model.ReviewID(0), dummyError)
 
 	review := NewReviewAdd(reviewRepo)
-	got, err := review.Add(context.Background(), ReviewAddRequest{})
+	got, err := review.Add(context.Background(), 1, ReviewAddRequest{})
 
 	reviewRepo.AssertExpectations(t)
 	assert.Nil(t, got)
@@ -106,11 +98,11 @@ func TestReviewAdd_Add_Failed_Store(t *testing.T) {
 	dummyError := errors.New("error")
 
 	reviewRepo := new(mockReviewRepository)
-	reviewRepo.On("NextID", mock.Anything).Return(model.ReviewID(1), nil)
+	reviewRepo.On("NextID", mock.Anything, mock.Anything).Return(model.ReviewID(1), nil)
 	reviewRepo.On("Store", mock.Anything, mock.Anything).Return(dummyError)
 
 	review := NewReviewAdd(reviewRepo)
-	got, err := review.Add(context.Background(), ReviewAddRequest{})
+	got, err := review.Add(context.Background(), 1, ReviewAddRequest{})
 
 	reviewRepo.AssertExpectations(t)
 	assert.Nil(t, got)

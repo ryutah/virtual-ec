@@ -36,8 +36,8 @@ func NewReviewAdd(reviewRepo repository.Review) *ReviewAdd {
 	}
 }
 
-func (r *ReviewAdd) Add(ctx context.Context, req ReviewAddRequest) (*ReviewAddResponse, error) {
-	id, err := r.repo.review.NextID(ctx)
+func (r *ReviewAdd) Add(ctx context.Context, productID int, req ReviewAddRequest) (*ReviewAddResponse, error) {
+	id, err := r.repo.review.NextID(ctx, model.ProductID(productID))
 	if err != nil {
 		return nil, err
 	}

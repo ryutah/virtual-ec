@@ -5,28 +5,11 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/ryutah/virtual-ec/domain/model"
-	"github.com/ryutah/virtual-ec/domain/repository"
 	. "github.com/ryutah/virtual-ec/usecase"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/net/context"
 )
-
-type mockProductRepository struct {
-	mock.Mock
-}
-
-var _ repository.Product = (*mockProductRepository)(nil)
-
-func (m *mockProductRepository) NextID(ctx context.Context) (model.ProductID, error) {
-	args := m.Called(ctx)
-	return args.Get(0).(model.ProductID), args.Error(1)
-}
-
-func (m *mockProductRepository) Store(ctx context.Context, p model.Product) error {
-	args := m.Called(ctx, p)
-	return args.Error(0)
-}
 
 func TestProductCreator_Append(t *testing.T) {
 	type (
@@ -68,13 +51,15 @@ func TestProductCreator_Append(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			ctx := context.Background()
+
 			productRepo := new(mockProductRepository)
-			productRepo.On("NextID", mock.Anything).Return(c.mocks.repository_product_nextID, nil)
-			productRepo.On("Store", mock.Anything, c.expected.args_repository_product_store_product).Return(nil)
+			productRepo.onNextID(ctx).Return(c.mocks.repository_product_nextID, nil)
+			productRepo.onStore(ctx, c.expected.args_repository_product_store_product).Return(nil)
 
 			creator := NewProductCreator(productRepo)
 
-			resp, err := creator.Append(context.Background(), c.in)
+			resp, err := creator.Append(ctx, c.in)
 			assert.Equal(t, c.expected.productAddResponse, resp)
 			assert.Equal(t, c.expected.error, err)
 			productRepo.AssertExpectations(t)
@@ -85,7 +70,7 @@ func TestProductCreator_Append(t *testing.T) {
 func TestProductCreator_Append_NextID_Failed(t *testing.T) {
 	dummyError := errors.New("error")
 	productRepo := new(mockProductRepository)
-	productRepo.On("NextID", mock.Anything).Return(model.ProductID(0), dummyError)
+	productRepo.onNextID(mock.Anything).Return(model.ProductID(0), dummyError)
 
 	creator := NewProductCreator(productRepo)
 
@@ -101,8 +86,8 @@ func TestProductCreator_Append_NextID_Failed(t *testing.T) {
 func TestProductCreator_Append_Store_Failed(t *testing.T) {
 	dummyError := errors.New("error")
 	productRepo := new(mockProductRepository)
-	productRepo.On("NextID", mock.Anything).Return(model.ProductID(1), nil)
-	productRepo.On("Store", mock.Anything, mock.Anything).Return(dummyError)
+	productRepo.onNextID(mock.Anything).Return(model.ProductID(1), nil)
+	productRepo.onStore(mock.Anything, mock.Anything).Return(dummyError)
 
 	creator := NewProductCreator(productRepo)
 

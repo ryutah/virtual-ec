@@ -36,12 +36,23 @@ func (p *Product) NextID(ctx context.Context) (model.ProductID, error) {
 	return model.ProductID(ids[0].ID), nil
 }
 
+func (p *Product) Get(ctx context.Context, id model.ProductID) (*model.Product, error) {
+	var entity productEntity
+	if err := p.client.Get(ctx, productKey(1), &entity); err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return model.NewProduct(id, entity.Name, entity.Price), nil
+}
+
 func (p *Product) Store(ctx context.Context, product model.Product) error {
 	entiity := productEntity{
 		Name:  product.Name(),
 		Price: product.Price(),
 	}
-	key := datastore.IDKey(kinds.product, int64(product.ID()), nil)
-	_, err := p.client.Put(ctx, key, &entiity)
+	_, err := p.client.Put(ctx, productKey(product.ID()), &entiity)
 	return errors.WithStack(err)
+}
+
+func productKey(id model.ProductID) *datastore.Key {
+	return datastore.IDKey(kinds.product, int64(id), nil)
 }
