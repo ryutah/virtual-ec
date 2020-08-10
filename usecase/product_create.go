@@ -7,32 +7,32 @@ import (
 	"github.com/ryutah/virtual-ec/domain/repository"
 )
 
-type ProductAddRequest struct {
+type ProductCreateRequest struct {
 	Name  string
 	Price int
 }
 
-type ProductAddResponse struct {
+type ProductCreateResponse struct {
 	ID    int
 	Name  string
 	Price int
 }
 
-type ProductCreator struct {
+type ProductCreate struct {
 	repo struct {
 		product repository.Product
 	}
 }
 
-func NewProductCreator(productRepo repository.Product) *ProductCreator {
-	return &ProductCreator{
+func NewProductCreate(productRepo repository.Product) *ProductCreate {
+	return &ProductCreate{
 		repo: struct{ product repository.Product }{
 			product: productRepo,
 		},
 	}
 }
 
-func (p *ProductCreator) Append(ctx context.Context, req ProductAddRequest) (*ProductAddResponse, error) {
+func (p *ProductCreate) Create(ctx context.Context, req ProductCreateRequest) (*ProductCreateResponse, error) {
 	id, err := p.repo.product.NextID(ctx)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (p *ProductCreator) Append(ctx context.Context, req ProductAddRequest) (*Pr
 		return nil, err
 	}
 
-	return &ProductAddResponse{
+	return &ProductCreateResponse{
 		ID:    int(product.ID()),
 		Name:  req.Name,
 		Price: req.Price,

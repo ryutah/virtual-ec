@@ -22,7 +22,7 @@ func TestProduct(t *testing.T) {
 
 	Convey("商品の追加と登録データの確認をする", t, func() {
 		Convey("新商品を作成する", func() {
-			createResult, err := usecase.NewProductCreator(productRepo).Append(ctx, usecase.ProductAddRequest{
+			createResult, err := usecase.NewProductCreate(productRepo).Create(ctx, usecase.ProductCreateRequest{
 				Name:  "新商品",
 				Price: 1000,
 			})

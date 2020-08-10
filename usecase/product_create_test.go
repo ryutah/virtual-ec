@@ -18,19 +18,19 @@ func TestProductCreator_Append(t *testing.T) {
 		}
 		expected struct {
 			args_repository_product_store_product model.Product
-			productAddResponse                    *ProductAddResponse
+			productAddResponse                    *ProductCreateResponse
 			error                                 error
 		}
 	)
 	cases := []struct {
 		name     string
-		in       ProductAddRequest
+		in       ProductCreateRequest
 		mocks    mocks
 		expected expected
 	}{
 		{
 			name: "指定した商品登録が正常に終了すること",
-			in: ProductAddRequest{
+			in: ProductCreateRequest{
 				Name:  "product1",
 				Price: 1000,
 			},
@@ -39,7 +39,7 @@ func TestProductCreator_Append(t *testing.T) {
 			},
 			expected: expected{
 				args_repository_product_store_product: *model.NewProduct(1, "product1", 1000),
-				productAddResponse: &ProductAddResponse{
+				productAddResponse: &ProductCreateResponse{
 					ID:    1,
 					Name:  "product1",
 					Price: 1000,
@@ -57,9 +57,9 @@ func TestProductCreator_Append(t *testing.T) {
 			productRepo.onNextID(ctx).Return(c.mocks.repository_product_nextID, nil)
 			productRepo.onStore(ctx, c.expected.args_repository_product_store_product).Return(nil)
 
-			creator := NewProductCreator(productRepo)
+			creator := NewProductCreate(productRepo)
 
-			resp, err := creator.Append(ctx, c.in)
+			resp, err := creator.Create(ctx, c.in)
 			assert.Equal(t, c.expected.productAddResponse, resp)
 			assert.Equal(t, c.expected.error, err)
 			productRepo.AssertExpectations(t)
@@ -72,9 +72,9 @@ func TestProductCreator_Append_NextID_Failed(t *testing.T) {
 	productRepo := new(mockProductRepository)
 	productRepo.onNextID(mock.Anything).Return(model.ProductID(0), dummyError)
 
-	creator := NewProductCreator(productRepo)
+	creator := NewProductCreate(productRepo)
 
-	resp, err := creator.Append(context.Background(), ProductAddRequest{
+	resp, err := creator.Create(context.Background(), ProductCreateRequest{
 		Name:  "test",
 		Price: 100,
 	})
@@ -89,9 +89,9 @@ func TestProductCreator_Append_Store_Failed(t *testing.T) {
 	productRepo.onNextID(mock.Anything).Return(model.ProductID(1), nil)
 	productRepo.onStore(mock.Anything, mock.Anything).Return(dummyError)
 
-	creator := NewProductCreator(productRepo)
+	creator := NewProductCreate(productRepo)
 
-	resp, err := creator.Append(context.Background(), ProductAddRequest{
+	resp, err := creator.Create(context.Background(), ProductCreateRequest{
 		Name:  "test",
 		Price: 100,
 	})
