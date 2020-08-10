@@ -11,11 +11,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestReviewAdd_Add(t *testing.T) {
+func TestReviewPost_Post(t *testing.T) {
 	type (
 		in struct {
 			productID int
-			req       ReviewAddRequest
+			req       ReviewPostRequest
 		}
 		mocks struct {
 			repository_product_get_product *model.Product
@@ -25,7 +25,7 @@ func TestReviewAdd_Add(t *testing.T) {
 			args_repository_product_get_productID   model.ProductID
 			args_repository_review_nextID_productID model.ProductID
 			args_repository_review_store_review     model.Review
-			reviewAddResponse                       *ReviewAddResponse
+			reviewAddResponse                       *ReviewPostResponse
 		}
 	)
 	cases := []struct {
@@ -38,7 +38,7 @@ func TestReviewAdd_Add(t *testing.T) {
 			name: "正常系",
 			in: in{
 				productID: 1,
-				req: ReviewAddRequest{
+				req: ReviewPostRequest{
 					PostedBy: "user1",
 					Rating:   3,
 					Comment:  "Good!",
@@ -54,7 +54,7 @@ func TestReviewAdd_Add(t *testing.T) {
 				args_repository_review_store_review: *model.ReCreateReview(
 					2, 1, "user1", 3, "Good!",
 				),
-				reviewAddResponse: &ReviewAddResponse{
+				reviewAddResponse: &ReviewPostResponse{
 					ID:       2,
 					ReviewTo: 1,
 					PostedBy: "user1",
@@ -75,8 +75,8 @@ func TestReviewAdd_Add(t *testing.T) {
 			reviewRepo.On("NextID", ctx, c.expected.args_repository_review_nextID_productID).Return(c.mocks.repository_review_nextID, nil)
 			reviewRepo.On("Store", ctx, c.expected.args_repository_review_store_review).Return(nil)
 
-			review := NewReviewAdd(reviewRepo, productRepo)
-			got, err := review.Add(ctx, c.in.productID, c.in.req)
+			review := NewReviewPost(reviewRepo, productRepo)
+			got, err := review.Post(ctx, c.in.productID, c.in.req)
 
 			productRepo.AssertExpectations(t)
 			reviewRepo.AssertExpectations(t)
@@ -86,15 +86,15 @@ func TestReviewAdd_Add(t *testing.T) {
 	}
 }
 
-func TestReviewAdd_Add_Failed_ProductGet(t *testing.T) {
+func TestReviewPost_Post_Failed_ProductGet(t *testing.T) {
 	dummyError := errors.New("error")
 
 	productRepo := new(mockProductRepository)
 	productRepo.onGet(mock.Anything, mock.Anything).Return(nil, dummyError)
 	reviewRepo := new(mockReviewRepository)
 
-	review := NewReviewAdd(reviewRepo, productRepo)
-	got, err := review.Add(context.Background(), 1, ReviewAddRequest{})
+	review := NewReviewPost(reviewRepo, productRepo)
+	got, err := review.Post(context.Background(), 1, ReviewPostRequest{})
 
 	productRepo.AssertExpectations(t)
 	reviewRepo.AssertExpectations(t)
@@ -102,7 +102,7 @@ func TestReviewAdd_Add_Failed_ProductGet(t *testing.T) {
 	assert.Equal(t, dummyError, err)
 }
 
-func TestReviewAdd_Add_Failed_NextID(t *testing.T) {
+func TestReviewPost_Post_Failed_NextID(t *testing.T) {
 	dummyError := errors.New("error")
 
 	productRepo := new(mockProductRepository)
@@ -110,8 +110,8 @@ func TestReviewAdd_Add_Failed_NextID(t *testing.T) {
 	reviewRepo := new(mockReviewRepository)
 	reviewRepo.On("NextID", mock.Anything, mock.Anything).Return(model.ReviewID(0), dummyError)
 
-	review := NewReviewAdd(reviewRepo, productRepo)
-	got, err := review.Add(context.Background(), 1, ReviewAddRequest{})
+	review := NewReviewPost(reviewRepo, productRepo)
+	got, err := review.Post(context.Background(), 1, ReviewPostRequest{})
 
 	productRepo.AssertExpectations(t)
 	reviewRepo.AssertExpectations(t)
@@ -119,7 +119,7 @@ func TestReviewAdd_Add_Failed_NextID(t *testing.T) {
 	assert.Equal(t, dummyError, err)
 }
 
-func TestReviewAdd_Add_Failed_Store(t *testing.T) {
+func TestReviewPost_Post_Failed_Store(t *testing.T) {
 	dummyError := errors.New("error")
 
 	productRepo := new(mockProductRepository)
@@ -128,8 +128,8 @@ func TestReviewAdd_Add_Failed_Store(t *testing.T) {
 	reviewRepo.On("NextID", mock.Anything, mock.Anything).Return(model.ReviewID(1), nil)
 	reviewRepo.On("Store", mock.Anything, mock.Anything).Return(dummyError)
 
-	review := NewReviewAdd(reviewRepo, productRepo)
-	got, err := review.Add(context.Background(), 1, ReviewAddRequest{})
+	review := NewReviewPost(reviewRepo, productRepo)
+	got, err := review.Post(context.Background(), 1, ReviewPostRequest{})
 
 	productRepo.AssertExpectations(t)
 	reviewRepo.AssertExpectations(t)

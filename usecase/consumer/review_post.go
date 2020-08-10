@@ -7,13 +7,13 @@ import (
 	"github.com/ryutah/virtual-ec/domain/repository"
 )
 
-type ReviewAddRequest struct {
+type ReviewPostRequest struct {
 	PostedBy string
 	Rating   int
 	Comment  string
 }
 
-type ReviewAddResponse struct {
+type ReviewPostResponse struct {
 	ID       model.ReviewID
 	ReviewTo model.ProductID
 	PostedBy string
@@ -21,15 +21,15 @@ type ReviewAddResponse struct {
 	Comment  string
 }
 
-type ReviewAdd struct {
+type ReviewPost struct {
 	repo struct {
 		review  repository.Review
 		product repository.Product
 	}
 }
 
-func NewReviewAdd(reviewRepo repository.Review, productRepo repository.Product) *ReviewAdd {
-	return &ReviewAdd{
+func NewReviewPost(reviewRepo repository.Review, productRepo repository.Product) *ReviewPost {
+	return &ReviewPost{
 		repo: struct {
 			review  repository.Review
 			product repository.Product
@@ -40,7 +40,7 @@ func NewReviewAdd(reviewRepo repository.Review, productRepo repository.Product) 
 	}
 }
 
-func (r *ReviewAdd) Add(ctx context.Context, productID int, req ReviewAddRequest) (*ReviewAddResponse, error) {
+func (r *ReviewPost) Post(ctx context.Context, productID int, req ReviewPostRequest) (*ReviewPostResponse, error) {
 	product, err := r.repo.product.Get(ctx, model.ProductID(productID))
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (r *ReviewAdd) Add(ctx context.Context, productID int, req ReviewAddRequest
 		return nil, err
 	}
 
-	return &ReviewAddResponse{
+	return &ReviewPostResponse{
 		ID:       review.ID(),
 		ReviewTo: review.ReviewTo(),
 		PostedBy: review.PostedBy(),
