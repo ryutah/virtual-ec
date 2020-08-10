@@ -79,10 +79,13 @@ func TestProduct_Store_Failed(t *testing.T) {
 func TestProduct_Get(t *testing.T) {
 	ctx := context.Background()
 
-	client := new(mockClient).withStore(mockClientStore{
-		*ProductKey(1): &ProductEntity{
-			Name:  "Product1",
-			Price: 100,
+	client := new(mockClient).withStore(productStore{
+		{
+			key: ProductKey(1),
+			val: &ProductEntity{
+				Name:  "Product1",
+				Price: 100,
+			},
 		},
 	})
 	client.onGet(ctx, ProductKey(1), new(ProductEntity)).Return(nil)

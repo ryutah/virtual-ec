@@ -6,9 +6,19 @@ tasks:
   test:
     desc: "テスト実行"
     cmds:
-      - go test -cover ./...
+      - go test -cover ./domain/... ./infrastructure/... ./usecase/...
     sources:
-      - "./**/*.go"
+      - "domain/**/*.go"
+      - "infrastructure/**/*.go"
+      - "usecase/**/*.go"
+
+  integration_test:
+    desc: "インテグレーションテスト実行"
+    cmds:
+      - ./script/integration_test.sh
+    env:
+      DATASTORE_EMULATOR_HOST: localhost:1234
+
   build_devenv:
     desc: "開発環境Dockerイメージのビルド"
     cmds:

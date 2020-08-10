@@ -38,7 +38,7 @@ func (p *Product) NextID(ctx context.Context) (model.ProductID, error) {
 
 func (p *Product) Get(ctx context.Context, id model.ProductID) (*model.Product, error) {
 	var entity productEntity
-	if err := p.client.Get(ctx, productKey(1), &entity); err != nil {
+	if err := p.client.Get(ctx, productKey(id), &entity); err != nil {
 		return nil, errors.WithStack(err)
 	}
 	return model.NewProduct(id, entity.Name, entity.Price), nil

@@ -48,7 +48,28 @@ func (r *Review) Store(ctx context.Context, review model.Review) error {
 }
 
 func (r *Review) Search(ctx context.Context, query repository.ReviewQuery) (*repository.ReviewSearchResult, error) {
-	panic("not implement yet")
+	q := datastore.NewQuery(kinds.review)
+	if productID, ok := query.ProductID(); ok {
+		q = q.Ancestor(productKey(productID))
+	}
+
+	entities := make([]*reviewEntity, 0)
+	keys, err := r.client.GetAll(ctx, q, &entities)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	var reviews []*model.Review
+	for i, key := range keys {
+		reviews = append(reviews, model.NewReview(
+			model.ReviewID(key.ID), model.ProductID(key.Parent.ID),
+			entities[i].PostedBy, entities[i].Rating, entities[i].Comment,
+		))
+	}
+
+	return &repository.ReviewSearchResult{
+		Reviews: reviews,
+	}, nil
 }
 
 func reviewKey(productID model.ProductID, reviewID model.ReviewID) *datastore.Key {
