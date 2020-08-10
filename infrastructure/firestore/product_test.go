@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"cloud.google.com/go/datastore"
+	perrors "github.com/pkg/errors"
+	"github.com/ryutah/virtual-ec/domain"
 	"github.com/ryutah/virtual-ec/domain/model"
 	. "github.com/ryutah/virtual-ec/infrastructure/firestore"
 	"github.com/stretchr/testify/assert"
@@ -43,7 +45,7 @@ func TestProduct_NextID_Failed(t *testing.T) {
 
 	client.AssertExpectations(t)
 	assert.Zero(t, got)
-	assert.EqualError(t, err, dummyErr.Error())
+	assert.EqualError(t, err, ProductErrMessages.NextID(dummyErr))
 }
 
 func TestProduct_Store(t *testing.T) {
@@ -69,11 +71,12 @@ func TestProduct_Store_Failed(t *testing.T) {
 	client := new(mockClient)
 	client.onPut(mock.Anything, mock.Anything, mock.Anything).Return(nil, dummyErr)
 
+	modelProduct := model.NewProduct(1, "product", 100)
 	product := NewProduct(client)
-	err := product.Store(context.Background(), *model.NewProduct(1, "product", 100))
+	err := product.Store(context.Background(), *modelProduct)
 
 	client.AssertExpectations(t)
-	assert.EqualError(t, err, dummyErr.Error())
+	assert.EqualError(t, err, ProductErrMessages.Store(*modelProduct, dummyErr))
 }
 
 func TestProduct_Get(t *testing.T) {
@@ -99,16 +102,48 @@ func TestProduct_Get(t *testing.T) {
 }
 
 func TestProduct_Get_Failed(t *testing.T) {
-	dummyErr := errors.New("error")
-	ctx := context.Background()
+	type (
+		mocks struct {
+			client_get_error error
+		}
+	)
+	cases := []struct {
+		name     string
+		in       model.ProductID
+		mocks    mocks
+		expected error
+	}{
+		{
+			name: "指定したkeyに該当するエンティティが存在しない",
+			in:   1,
+			mocks: mocks{
+				client_get_error: datastore.ErrNoSuchEntity,
+			},
+			expected: domain.ErrNoSuchEntity,
+		},
+		{
+			name: "不明なエラーが発生",
+			in:   1,
+			mocks: mocks{
+				client_get_error: errors.New("some error"),
+			},
+			expected: errors.New(ProductErrMessages.Get(1, errors.New("some error"))),
+		},
+	}
 
-	client := new(mockClient)
-	client.onGet(mock.Anything, mock.Anything, mock.Anything).Return(dummyErr)
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			ctx := context.Background()
 
-	product := NewProduct(client)
-	got, err := product.Get(ctx, 1)
+			client := new(mockClient)
+			client.onGet(mock.Anything, mock.Anything, mock.Anything).Return(c.mocks.client_get_error)
 
-	client.AssertExpectations(t)
-	assert.Nil(t, got)
-	assert.EqualError(t, err, dummyErr.Error())
+			product := NewProduct(client)
+			got, err := product.Get(ctx, c.in)
+
+			client.AssertExpectations(t)
+			assert.Nil(t, got)
+			assert.EqualError(t, perrors.Cause(err), c.expected.Error())
+		})
+	}
 }

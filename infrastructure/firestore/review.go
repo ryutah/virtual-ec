@@ -2,12 +2,29 @@ package firestore
 
 import (
 	"context"
+	"fmt"
 
 	"cloud.google.com/go/datastore"
 	"github.com/pkg/errors"
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
 )
+
+var reviewErrMessages = struct {
+	nextID func(error) string
+	store  func(model.Review, error) string
+	search func(repository.ReviewQuery, error) string
+}{
+	nextID: func(err error) string {
+		return fmt.Sprintf("failed to allocates id: %v", err)
+	},
+	store: func(r model.Review, err error) string {
+		return fmt.Sprintf("failed to store review(%v): %v", r, err)
+	},
+	search: func(q repository.ReviewQuery, err error) string {
+		return fmt.Sprintf("failed to search(%v): %v", q, err)
+	},
+}
 
 type reviewEntity struct {
 	PostedBy string
@@ -32,7 +49,7 @@ func (r *Review) NextID(ctx context.Context, productID model.ProductID) (model.R
 		datastore.IncompleteKey(kinds.review, productKey(productID)),
 	})
 	if err != nil {
-		return 0, errors.WithStack(err)
+		return 0, errors.New(reviewErrMessages.nextID(err))
 	}
 	return model.ReviewID(keys[0].ID), nil
 }
@@ -43,8 +60,10 @@ func (r *Review) Store(ctx context.Context, review model.Review) error {
 		Rating:   review.Rating(),
 		Comment:  review.Comment(),
 	}
-	_, err := r.client.Put(ctx, reviewKey(review.ReviewTo(), review.ID()), &entity)
-	return errors.WithStack(err)
+	if _, err := r.client.Put(ctx, reviewKey(review.ReviewTo(), review.ID()), &entity); err != nil {
+		return errors.New(reviewErrMessages.store(review, err))
+	}
+	return nil
 }
 
 func (r *Review) Search(ctx context.Context, query repository.ReviewQuery) (*repository.ReviewSearchResult, error) {
@@ -56,7 +75,7 @@ func (r *Review) Search(ctx context.Context, query repository.ReviewQuery) (*rep
 	entities := make([]*reviewEntity, 0)
 	keys, err := r.client.GetAll(ctx, q, &entities)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.New(reviewErrMessages.search(query, err))
 	}
 
 	var reviews []*model.Review

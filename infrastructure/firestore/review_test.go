@@ -45,7 +45,7 @@ func TestReview_NextID_Failed(t *testing.T) {
 
 	client.AssertExpectations(t)
 	assert.Zero(t, got)
-	assert.EqualError(t, err, dummyErr.Error())
+	assert.EqualError(t, err, ReviewErrMessages.NextID(dummyErr))
 }
 
 func TestReview_Store(t *testing.T) {
@@ -72,11 +72,12 @@ func TestReview_Store_Failed(t *testing.T) {
 	client := new(mockClient)
 	client.onPut(mock.Anything, mock.Anything, mock.Anything).Return(nil, dummyErr)
 
+	modelReview := model.ReCreateReview(1, 2, "user1", 3, "comments!")
 	review := NewReview(client)
-	err := review.Store(ctx, *model.ReCreateReview(1, 2, "user1", 3, "comments!"))
+	err := review.Store(ctx, *modelReview)
 
 	client.AssertExpectations(t)
-	assert.EqualError(t, err, dummyErr.Error())
+	assert.EqualError(t, err, ReviewErrMessages.Store(*modelReview, dummyErr))
 }
 
 func TestReview_Search(t *testing.T) {
@@ -193,10 +194,11 @@ func TestReview_Search_Failed(t *testing.T) {
 	client := new(mockClient)
 	client.onGetAll(ctx, mock.Anything, mock.Anything).Return(nil, dummyErr)
 
+	query := repository.NewReviewQuery()
 	review := NewReview(client)
-	got, err := review.Search(ctx, repository.NewReviewQuery())
+	got, err := review.Search(ctx, query)
 
 	client.AssertExpectations(t)
 	assert.Nil(t, got)
-	assert.EqualError(t, err, dummyErr.Error())
+	assert.EqualError(t, err, ReviewErrMessages.Search(query, dummyErr))
 }
