@@ -61,7 +61,7 @@ func (r *Review) Search(ctx context.Context, query repository.ReviewQuery) (*rep
 
 	var reviews []*model.Review
 	for i, key := range keys {
-		reviews = append(reviews, model.NewReview(
+		reviews = append(reviews, model.ReCreateReview(
 			model.ReviewID(key.ID), model.ProductID(key.Parent.ID),
 			entities[i].PostedBy, entities[i].Rating, entities[i].Comment,
 		))

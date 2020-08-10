@@ -8,7 +8,6 @@ import (
 )
 
 type ReviewAddRequest struct {
-	ReviewTo model.ProductID
 	PostedBy string
 	Rating   int
 	Comment  string
@@ -24,26 +23,36 @@ type ReviewAddResponse struct {
 
 type ReviewAdd struct {
 	repo struct {
-		review repository.Review
+		review  repository.Review
+		product repository.Product
 	}
 }
 
-func NewReviewAdd(reviewRepo repository.Review) *ReviewAdd {
+func NewReviewAdd(reviewRepo repository.Review, productRepo repository.Product) *ReviewAdd {
 	return &ReviewAdd{
-		repo: struct{ review repository.Review }{
-			review: reviewRepo,
+		repo: struct {
+			review  repository.Review
+			product repository.Product
+		}{
+			review:  reviewRepo,
+			product: productRepo,
 		},
 	}
 }
 
 func (r *ReviewAdd) Add(ctx context.Context, productID int, req ReviewAddRequest) (*ReviewAddResponse, error) {
+	product, err := r.repo.product.Get(ctx, model.ProductID(productID))
+	if err != nil {
+		return nil, err
+	}
 	id, err := r.repo.review.NextID(ctx, model.ProductID(productID))
 	if err != nil {
 		return nil, err
 	}
-	review := model.NewReview(
-		id, req.ReviewTo, req.PostedBy, req.Rating, req.Comment,
-	)
+
+	review := product.NewReview(id)
+	review.Write(req.PostedBy, req.Rating, req.Comment)
+
 	if err := r.repo.review.Store(ctx, *review); err != nil {
 		return nil, err
 	}

@@ -59,7 +59,7 @@ func TestReview_Store(t *testing.T) {
 	}).Return(ReviewKey(2, 1), nil)
 
 	review := NewReview(client)
-	err := review.Store(ctx, *model.NewReview(1, 2, "user1", 3, "comments!"))
+	err := review.Store(ctx, *model.ReCreateReview(1, 2, "user1", 3, "comments!"))
 
 	client.AssertExpectations(t)
 	assert.Nil(t, err)
@@ -73,7 +73,7 @@ func TestReview_Store_Failed(t *testing.T) {
 	client.onPut(mock.Anything, mock.Anything, mock.Anything).Return(nil, dummyErr)
 
 	review := NewReview(client)
-	err := review.Store(ctx, *model.NewReview(1, 2, "user1", 3, "comments!"))
+	err := review.Store(ctx, *model.ReCreateReview(1, 2, "user1", 3, "comments!"))
 
 	client.AssertExpectations(t)
 	assert.EqualError(t, err, dummyErr.Error())
@@ -143,9 +143,9 @@ func TestReview_Search(t *testing.T) {
 				args_repository_review_getAll_value: ptrOf(make([]*ReviewEntity, 0)),
 				reviewSearchResult: &repository.ReviewSearchResult{
 					Reviews: []*model.Review{
-						model.NewReview(1, 1, "user1", 1, "comment1"),
-						model.NewReview(2, 1, "user2", 2, "comment2"),
-						model.NewReview(3, 1, "user3", 3, "comment3"),
+						model.ReCreateReview(1, 1, "user1", 1, "comment1"),
+						model.ReCreateReview(2, 1, "user2", 2, "comment2"),
+						model.ReCreateReview(3, 1, "user3", 3, "comment3"),
 					},
 				},
 			},

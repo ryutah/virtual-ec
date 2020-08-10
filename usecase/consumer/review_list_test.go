@@ -32,8 +32,8 @@ func TestReviewList_List(t *testing.T) {
 			mocks: mocks{
 				repository_review_search_reviewSearchResult: &repository.ReviewSearchResult{
 					Reviews: []*model.Review{
-						model.NewReview(1, 2, "user1", 5, "Good!"),
-						model.NewReview(10, 2, "user2", 3, "Bad!"),
+						model.ReCreateReview(1, 2, "user1", 5, "Good!"),
+						model.ReCreateReview(10, 2, "user2", 3, "Bad!"),
 					},
 				},
 			},

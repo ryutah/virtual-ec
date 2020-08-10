@@ -10,8 +10,7 @@ type Review struct {
 	comment  string
 }
 
-func NewReview(id ReviewID, reviewTo ProductID, postedBy string, rating int, comment string) *Review {
-	// NOTE(ryutah): パラメータのバリデーションをすべき
+func ReCreateReview(id ReviewID, reviewTo ProductID, postedBy string, rating int, comment string) *Review {
 	return &Review{
 		id:       id,
 		reviewTo: reviewTo,
@@ -19,6 +18,13 @@ func NewReview(id ReviewID, reviewTo ProductID, postedBy string, rating int, com
 		rating:   rating,
 		comment:  comment,
 	}
+}
+
+func (r *Review) Write(postedBy string, rating int, comment string) {
+	// NOTE(ryutah): パラメータのバリデーションをすべき
+	r.postedBy = postedBy
+	r.rating = rating
+	r.comment = comment
 }
 
 func (r *Review) ID() ReviewID {

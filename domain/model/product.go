@@ -27,3 +27,10 @@ func (p *Product) Name() string {
 func (p *Product) Price() int {
 	return p.price
 }
+
+func (p *Product) NewReview(id ReviewID) *Review {
+	return &Review{
+		id:       id,
+		reviewTo: p.ID(),
+	}
+}

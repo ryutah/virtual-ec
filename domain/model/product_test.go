@@ -49,3 +49,37 @@ func TestNewProduct(t *testing.T) {
 		})
 	}
 }
+
+func TestProduct_NewReview(t *testing.T) {
+	type expected struct {
+		id       ReviewID
+		reviewTo ProductID
+	}
+	cases := []struct {
+		name     string
+		product  *Product
+		in       ReviewID
+		expected expected
+	}{
+		{
+			name:    "正常系",
+			product: NewProduct(1, "product1", 100),
+			in:      2,
+			expected: expected{
+				id:       2,
+				reviewTo: 1,
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got := c.product.NewReview(c.in)
+			assert.Equal(t, c.expected.id, got.ID())
+			assert.Equal(t, c.expected.reviewTo, got.ReviewTo())
+			assert.Zero(t, got.PostedBy())
+			assert.Zero(t, got.Rating())
+			assert.Zero(t, got.Comment())
+		})
+	}
+}
