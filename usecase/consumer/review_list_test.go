@@ -1,4 +1,4 @@
-package usecase_test
+package consumer_test
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
-	. "github.com/ryutah/virtual-ec/usecase"
+	. "github.com/ryutah/virtual-ec/usecase/consumer"
 	"github.com/stretchr/testify/assert"
 )
 

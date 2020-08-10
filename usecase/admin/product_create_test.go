@@ -1,11 +1,11 @@
-package usecase_test
+package admin_test
 
 import (
 	"testing"
 
 	"github.com/pkg/errors"
 	"github.com/ryutah/virtual-ec/domain/model"
-	. "github.com/ryutah/virtual-ec/usecase"
+	. "github.com/ryutah/virtual-ec/usecase/admin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/net/context"
