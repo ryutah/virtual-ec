@@ -6,7 +6,7 @@ tasks:
   test:
     desc: "テスト実行"
     cmds:
-      - go test -cover ./domain/... ./infrastructure/... ./usecase/...
+      - go test -cover ./domain/... ./infrastructure/... ./usecase/... ./lib/...
     sources:
       - "domain/**/*.go"
       - "infrastructure/**/*.go"
