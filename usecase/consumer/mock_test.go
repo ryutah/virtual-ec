@@ -48,6 +48,14 @@ type mockReviewRepository struct {
 
 var _ repository.Review = (*mockReviewRepository)(nil)
 
+func (m *mockReviewRepository) onNextID(ctx, modelProductID interface{}) *mock.Call {
+	return m.On("NextID", ctx, modelProductID)
+}
+
+func (m *mockReviewRepository) onStore(ctx, modelReview interface{}) *mock.Call {
+	return m.On("Store", ctx, modelReview)
+}
+
 func (m *mockReviewRepository) onSearch(ctx, repositoryReviewQuery interface{}) *mock.Call {
 	return m.On("Search", ctx, repositoryReviewQuery)
 }

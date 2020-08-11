@@ -122,8 +122,8 @@ func TestReviewPost_Post(t *testing.T) {
 			productRepo := new(mockProductRepository)
 			productRepo.onGet(ctx, c.expected.args_repository_product_get_productID).Return(c.mocks.repository_product_get_product, nil)
 			reviewRepo := new(mockReviewRepository)
-			reviewRepo.On("NextID", ctx, c.expected.args_repository_review_nextID_productID).Return(c.mocks.repository_review_nextID, nil)
-			reviewRepo.On("Store", ctx, c.expected.args_repository_review_store_review).Return(nil)
+			reviewRepo.onNextID(ctx, c.expected.args_repository_review_nextID_productID).Return(c.mocks.repository_review_nextID, nil)
+			reviewRepo.onStore(ctx, c.expected.args_repository_review_store_review).Return(nil)
 			output := new(mockReviewPostOutputPort)
 			output.onSuccess(c.expected.args_reviewPostOutputPort_reviewPostSuccess)
 
@@ -184,7 +184,7 @@ func TestReviewPost_Post_Failed_NextID(t *testing.T) {
 	productRepo := new(mockProductRepository)
 	productRepo.onGet(mock.Anything, mock.Anything).Return(model.NewProduct(1, "product", 100), nil)
 	reviewRepo := new(mockReviewRepository)
-	reviewRepo.On("NextID", mock.Anything, mock.Anything).Return(model.ReviewID(0), dummyError)
+	reviewRepo.onNextID(mock.Anything, mock.Anything).Return(model.ReviewID(0), dummyError)
 	output := new(mockReviewPostOutputPort)
 	output.onFailed(ReviewPostFailed{
 		Err: errors.New(ReviewPostErrorMessages.Failed()),
@@ -205,8 +205,8 @@ func TestReviewPost_Post_Failed_Store(t *testing.T) {
 	productRepo := new(mockProductRepository)
 	productRepo.onGet(mock.Anything, mock.Anything).Return(model.NewProduct(1, "product", 100), nil)
 	reviewRepo := new(mockReviewRepository)
-	reviewRepo.On("NextID", mock.Anything, mock.Anything).Return(model.ReviewID(1), nil)
-	reviewRepo.On("Store", mock.Anything, mock.Anything).Return(dummyError)
+	reviewRepo.onNextID(mock.Anything, mock.Anything).Return(model.ReviewID(1), nil)
+	reviewRepo.onStore(mock.Anything, mock.Anything).Return(dummyError)
 	output := new(mockReviewPostOutputPort)
 	output.onFailed(ReviewPostFailed{
 		Err: errors.New(ReviewPostErrorMessages.Failed()),
