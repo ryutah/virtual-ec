@@ -63,7 +63,7 @@ func TestProduct_CreateAndConfirm(t *testing.T) {
 	defer client.Close()
 	productRepo := firestore.NewProduct(client)
 
-	Convey("商品の追加と登録データの確認をする", t, func() {
+	Convey("商品を追加して追加された商品の情報を確認する", t, func() {
 		Convey("新商品を作成する", func() {
 			createOutputPort := new(productCreateOutputPort)
 			success := admin.NewProductCreate(createOutputPort, productRepo).Create(ctx, productCreateInput{
@@ -72,18 +72,18 @@ func TestProduct_CreateAndConfirm(t *testing.T) {
 			})
 			Convey("作成が正常に終了する", func() {
 				So(success, ShouldBeTrue)
-				Convey("生成されたIDを指定してProductを取得する", func() {
-					findOutputPort := new(productFindOutputPort)
-					success := admin.NewProductFind(findOutputPort, productRepo).Find(ctx, createOutputPort.success.ID)
-					Convey("取得が正常に終了する", func() {
-						So(success, ShouldBeTrue)
-					})
-					Convey("新規作成したProductが取得できている", func() {
-						So(findOutputPort.success, ShouldResemble, admin.ProductFindSuccess{
-							ID:    createOutputPort.success.ID,
-							Name:  createOutputPort.success.Name,
-							Price: createOutputPort.success.Price,
-						})
+			})
+			Convey("生成されたIDを指定してProductを取得する", func() {
+				findOutputPort := new(productFindOutputPort)
+				success := admin.NewProductFind(findOutputPort, productRepo).Find(ctx, createOutputPort.success.ID)
+				Convey("取得が正常に終了する", func() {
+					So(success, ShouldBeTrue)
+				})
+				Convey("新規作成したProductが取得できている", func() {
+					So(findOutputPort.success, ShouldResemble, admin.ProductFindSuccess{
+						ID:    createOutputPort.success.ID,
+						Name:  createOutputPort.success.Name,
+						Price: createOutputPort.success.Price,
 					})
 				})
 			})
