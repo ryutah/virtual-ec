@@ -2,13 +2,37 @@ package consumer_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
 	. "github.com/ryutah/virtual-ec/usecase/consumer"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
+
+type mockReviewListOutputPort struct {
+	mock.Mock
+}
+
+var _ ReviewListOutputPort = (*mockReviewListOutputPort)(nil)
+
+func (m *mockReviewListOutputPort) onSuccess(reviewListSuccess interface{}) *mock.Call {
+	return m.On("Success", reviewListSuccess)
+}
+
+func (m *mockReviewListOutputPort) onFailed(reviewListFailed interface{}) *mock.Call {
+	return m.On("Failed", reviewListFailed)
+}
+
+func (m *mockReviewListOutputPort) Success(r ReviewListSuccess) {
+	m.Called(r)
+}
+
+func (m *mockReviewListOutputPort) Failed(r ReviewListFailed) {
+	m.Called(r)
+}
 
 func TestReviewList_List(t *testing.T) {
 	type (
@@ -16,8 +40,8 @@ func TestReviewList_List(t *testing.T) {
 			repository_review_search_reviewSearchResult *repository.ReviewSearchResult
 		}
 		expected struct {
-			args_repository_review_search_reviewQuery repository.ReviewQuery
-			reviewListResponse                        *ReviewListResponse
+			args_repository_review_search_reviewQuery   repository.ReviewQuery
+			args_reviewListOutputPort_reviewListSuccess ReviewListSuccess
 		}
 	)
 	cases := []struct {
@@ -39,8 +63,8 @@ func TestReviewList_List(t *testing.T) {
 			},
 			expected: expected{
 				args_repository_review_search_reviewQuery: repository.NewReviewQuery().WithProductID(2),
-				reviewListResponse: &ReviewListResponse{
-					Reviews: []*ReviewListResponseReview{
+				args_reviewListOutputPort_reviewListSuccess: ReviewListSuccess{
+					Reviews: []*ReviewListReviewDetail{
 						{
 							ID:       1,
 							ReviewTo: 2,
@@ -66,7 +90,7 @@ func TestReviewList_List(t *testing.T) {
 			},
 			expected: expected{
 				args_repository_review_search_reviewQuery: repository.NewReviewQuery().WithProductID(2),
-				reviewListResponse: &ReviewListResponse{
+				args_reviewListOutputPort_reviewListSuccess: ReviewListSuccess{
 					Reviews: nil,
 				}},
 		},
@@ -80,12 +104,34 @@ func TestReviewList_List(t *testing.T) {
 			reviewRepo.
 				onSearch(ctx, c.expected.args_repository_review_search_reviewQuery).
 				Return(c.mocks.repository_review_search_reviewSearchResult, nil)
+			output := new(mockReviewListOutputPort)
+			output.onSuccess(c.expected.args_reviewListOutputPort_reviewListSuccess)
 
-			review := NewReviewList(reviewRepo)
-			got, err := review.List(ctx, c.in)
+			review := NewReviewList(output, reviewRepo)
+			success := review.List(ctx, c.in)
 
-			assert.Equal(t, c.expected.reviewListResponse, got)
-			assert.Nil(t, err)
+			reviewRepo.AssertExpectations(t)
+			output.AssertExpectations(t)
+			assert.True(t, success)
 		})
 	}
+}
+
+func TestReviewList_List_Failed(t *testing.T) {
+	dummyError := errors.New("error")
+	ctx := context.Background()
+
+	reviewRepo := new(mockReviewRepository)
+	reviewRepo.onSearch(ctx, mock.Anything).Return(nil, dummyError)
+	output := new(mockReviewListOutputPort)
+	output.onFailed(ReviewListFailed{
+		Err: errors.New(ReviewListErrorMessages.Failed(1)),
+	})
+
+	review := NewReviewList(output, reviewRepo)
+	success := review.List(ctx, 1)
+
+	reviewRepo.AssertExpectations(t)
+	output.AssertExpectations(t)
+	assert.False(t, success)
 }

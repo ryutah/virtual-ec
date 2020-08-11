@@ -2,50 +2,80 @@ package admin
 
 import (
 	"context"
+	"errors"
 
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
 )
 
-type ProductCreateRequest struct {
-	Name  string
-	Price int
+var productCreateErrroMessages = struct {
+	failed func() string
+}{
+	failed: func() string { return "Productの作成に失敗しました" },
 }
 
-type ProductCreateResponse struct {
-	ID    int
-	Name  string
-	Price int
-}
+type (
+	ProductCreateOutputPort interface {
+		Success(ProductCreateSuccess)
+		Failed(ProductCreateFailed)
+	}
+
+	ProductCreateInputPort interface {
+		Name() string
+		Price() int
+	}
+)
+
+type (
+	ProductCreateSuccess struct {
+		ID    int
+		Name  string
+		Price int
+	}
+
+	ProductCreateFailed struct {
+		Err error
+	}
+)
 
 type ProductCreate struct {
-	repo struct {
+	output ProductCreateOutputPort
+	repo   struct {
 		product repository.Product
 	}
 }
 
-func NewProductCreate(productRepo repository.Product) *ProductCreate {
+func NewProductCreate(output ProductCreateOutputPort, productRepo repository.Product) *ProductCreate {
 	return &ProductCreate{
+		output: output,
 		repo: struct{ product repository.Product }{
 			product: productRepo,
 		},
 	}
 }
 
-func (p *ProductCreate) Create(ctx context.Context, req ProductCreateRequest) (*ProductCreateResponse, error) {
+func (p *ProductCreate) Create(ctx context.Context, input ProductCreateInputPort) (success bool) {
 	id, err := p.repo.product.NextID(ctx)
 	if err != nil {
-		return nil, err
+		return p.handleError()
 	}
 
-	product := model.NewProduct(id, req.Name, req.Price)
+	product := model.NewProduct(id, input.Name(), input.Price())
 	if err := p.repo.product.Store(ctx, *product); err != nil {
-		return nil, err
+		return p.handleError()
 	}
 
-	return &ProductCreateResponse{
+	p.output.Success(ProductCreateSuccess{
 		ID:    int(product.ID()),
-		Name:  req.Name,
-		Price: req.Price,
-	}, nil
+		Name:  product.Name(),
+		Price: product.Price(),
+	})
+	return true
+}
+
+func (p *ProductCreate) handleError() bool {
+	p.output.Failed(ProductCreateFailed{
+		Err: errors.New(productCreateErrroMessages.failed()),
+	})
+	return false
 }
