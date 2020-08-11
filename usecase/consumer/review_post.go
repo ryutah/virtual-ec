@@ -9,6 +9,7 @@ import (
 	"github.com/ryutah/virtual-ec/domain"
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
+	"github.com/ryutah/virtual-ec/lib/xlog"
 )
 
 var reviewPostErrorMessages = struct {
@@ -73,18 +74,18 @@ func NewReviewPost(output ReviewPostOutputPort, reviewRepo repository.Review, pr
 func (r *ReviewPost) Post(ctx context.Context, productID int, input ReviewPostInputPort) (success bool) {
 	product, err := r.repo.product.Get(ctx, model.ProductID(productID))
 	if err != nil {
-		return r.handleGetProductError(model.ProductID(productID), err)
+		return r.handleGetProductError(ctx, model.ProductID(productID), err)
 	}
 	id, err := r.repo.review.NextID(ctx, model.ProductID(productID))
 	if err != nil {
-		return r.handleError()
+		return r.handleError(ctx, err)
 	}
 
 	review := product.NewReview(id)
 	review.Write(input.PostedBy(), input.Rating(), input.Comment())
 
 	if err := r.repo.review.Store(ctx, *review); err != nil {
-		return r.handleError()
+		return r.handleError(ctx, err)
 	}
 
 	r.output.Success(ReviewPostSuccess{
@@ -97,12 +98,14 @@ func (r *ReviewPost) Post(ctx context.Context, productID int, input ReviewPostIn
 	return true
 }
 
-func (r *ReviewPost) handleGetProductError(id model.ProductID, err error) bool {
+func (r *ReviewPost) handleGetProductError(ctx context.Context, id model.ProductID, err error) bool {
 	if perrors.Is(err, domain.ErrNoSuchEntity) {
+		xlog.Warningf(ctx, "product not found: %+v", err)
 		r.output.ProductNotFound(ReviewPostFailed{
 			Err: errors.New(reviewPostErrorMessages.productNotFound(id)),
 		})
 	} else {
+		xlog.Errorf(ctx, "failed to get product: %+v", err)
 		r.output.Failed(ReviewPostFailed{
 			Err: errors.New(reviewPostErrorMessages.failed()),
 		})
@@ -110,7 +113,8 @@ func (r *ReviewPost) handleGetProductError(id model.ProductID, err error) bool {
 	return false
 }
 
-func (r *ReviewPost) handleError() bool {
+func (r *ReviewPost) handleError(ctx context.Context, err error) bool {
+	xlog.Errorf(ctx, "failed to post review: %+v", err)
 	r.output.Failed(ReviewPostFailed{
 		Err: errors.New(reviewPostErrorMessages.failed()),
 	})

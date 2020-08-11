@@ -159,7 +159,7 @@ func TestReviewPost_Post_Failed_ProductGet(t *testing.T) {
 }
 
 func TestReviewPost_Post_Failed_ProductGet_ProductNotFound(t *testing.T) {
-	dummyError := perrors.WithMessage(domain.ErrNoSuchEntity, "error")
+	dummyError := perrors.Wrap(domain.ErrNoSuchEntity, "error")
 
 	productRepo := new(mockProductRepository)
 	productRepo.onGet(mock.Anything, mock.Anything).Return(nil, dummyError)

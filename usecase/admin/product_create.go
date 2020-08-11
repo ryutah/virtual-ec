@@ -6,6 +6,7 @@ import (
 
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
+	"github.com/ryutah/virtual-ec/lib/xlog"
 )
 
 var productCreateErrroMessages = struct {
@@ -57,12 +58,12 @@ func NewProductCreate(output ProductCreateOutputPort, productRepo repository.Pro
 func (p *ProductCreate) Create(ctx context.Context, input ProductCreateInputPort) (success bool) {
 	id, err := p.repo.product.NextID(ctx)
 	if err != nil {
-		return p.handleError()
+		return p.handleError(ctx, err)
 	}
 
 	product := model.NewProduct(id, input.Name(), input.Price())
 	if err := p.repo.product.Store(ctx, *product); err != nil {
-		return p.handleError()
+		return p.handleError(ctx, err)
 	}
 
 	p.output.Success(ProductCreateSuccess{
@@ -73,7 +74,8 @@ func (p *ProductCreate) Create(ctx context.Context, input ProductCreateInputPort
 	return true
 }
 
-func (p *ProductCreate) handleError() bool {
+func (p *ProductCreate) handleError(ctx context.Context, err error) bool {
+	xlog.Errorf(ctx, "failed to create product: %+v", err)
 	p.output.Failed(ProductCreateFailed{
 		Err: errors.New(productCreateErrroMessages.failed()),
 	})

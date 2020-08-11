@@ -119,7 +119,7 @@ func TestProductFind_Find_Get_Filed(t *testing.T) {
 }
 
 func TestProductFind_Find_Get_NotFound(t *testing.T) {
-	dummyError := perrors.WithMessage(domain.ErrNoSuchEntity, "dummy error")
+	dummyError := perrors.Wrap(domain.ErrNoSuchEntity, "dummy error")
 	ctx := context.Background()
 
 	productRepo := new(mockProductRepository)

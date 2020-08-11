@@ -7,6 +7,7 @@ import (
 
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
+	"github.com/ryutah/virtual-ec/lib/xlog"
 )
 
 var reviewListErrorMessages = struct {
@@ -61,6 +62,7 @@ func (r *ReviewList) List(ctx context.Context, productID int) (success bool) {
 		ctx, repository.NewReviewQuery().WithProductID(model.ProductID(productID)),
 	)
 	if err != nil {
+		xlog.Errorf(ctx, "failed to get review list: %+v", err)
 		r.output.Failed(ReviewListFailed{
 			Err: errors.New(reviewListErrorMessages.failed(model.ProductID(productID))),
 		})

@@ -10,6 +10,7 @@ import (
 	"github.com/ryutah/virtual-ec/domain"
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
+	"github.com/ryutah/virtual-ec/lib/xlog"
 )
 
 var productFindFailedErrorMessages = struct {
@@ -57,7 +58,7 @@ func NewProductFind(output ProductFindOutputPort, productRepo repository.Product
 func (p *ProductFind) Find(ctx context.Context, id int) (success bool) {
 	product, err := p.repo.product.Get(ctx, model.ProductID(id))
 	if err != nil {
-		return p.handleError(model.ProductID(id), err)
+		return p.handleError(ctx, model.ProductID(id), err)
 	}
 	p.output.Success(ProductFindSuccess{
 		ID:    int(product.ID()),
@@ -67,12 +68,14 @@ func (p *ProductFind) Find(ctx context.Context, id int) (success bool) {
 	return true
 }
 
-func (p *ProductFind) handleError(id model.ProductID, err error) bool {
+func (p *ProductFind) handleError(ctx context.Context, id model.ProductID, err error) bool {
 	if perrors.Is(err, domain.ErrNoSuchEntity) {
+		xlog.Warningf(ctx, "product not found: %+v", err)
 		p.output.NotFound(ProductFindFailed{
 			Err: errors.New(productFindFailedErrorMessages.notFound(id)),
 		})
 	} else {
+		xlog.Errorf(ctx, "failed to find product: %+v", err)
 		p.output.Failed(ProductFindFailed{
 			Err: errors.New(productFindFailedErrorMessages.failed(id)),
 		})
