@@ -9,3 +9,7 @@ var kinds = struct {
 	product: "product",
 	review:  "review",
 }
+
+type ClientWrapper interface {
+	Client
+}

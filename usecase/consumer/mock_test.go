@@ -9,6 +9,7 @@ import (
 )
 
 type mockProductRepository struct {
+	repository.Product
 	mock.Mock
 }
 
@@ -43,6 +44,7 @@ func (m *mockProductRepository) Get(ctx context.Context, id model.ProductID) (*m
 }
 
 type mockReviewRepository struct {
+	repository.Review
 	mock.Mock
 }
 

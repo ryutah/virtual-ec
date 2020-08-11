@@ -9,10 +9,9 @@ import (
 )
 
 type mockProductRepository struct {
+	repository.Product
 	mock.Mock
 }
-
-var _ repository.Product = (*mockProductRepository)(nil)
 
 func (m *mockProductRepository) onNextID(ctx interface{}) *mock.Call {
 	return m.On("NextID", ctx)
@@ -24,6 +23,10 @@ func (m *mockProductRepository) onStore(ctx, modelProduct interface{}) *mock.Cal
 
 func (m *mockProductRepository) onGet(ctx, id interface{}) *mock.Call {
 	return m.On("Get", ctx, id)
+}
+
+func (m *mockProductRepository) onSearch(ctx, repositoryProductQuery interface{}) *mock.Call {
+	return m.On("Search", ctx, repositoryProductQuery)
 }
 
 func (m *mockProductRepository) NextID(ctx context.Context) (model.ProductID, error) {
@@ -42,11 +45,16 @@ func (m *mockProductRepository) Get(ctx context.Context, id model.ProductID) (*m
 	return product, args.Error(1)
 }
 
-type mockReviewRepository struct {
-	mock.Mock
+func (m *mockProductRepository) Search(ctx context.Context, p repository.ProductQuery) (*repository.ProductSearchResult, error) {
+	args := m.Called(ctx, p)
+	result, _ := args.Get(0).(*repository.ProductSearchResult)
+	return result, args.Error(1)
 }
 
-var _ repository.Review = (*mockReviewRepository)(nil)
+type mockReviewRepository struct {
+	repository.Review
+	mock.Mock
+}
 
 func (m *mockReviewRepository) onSearch(ctx, repositoryReviewQuery interface{}) *mock.Call {
 	return m.On("Search", ctx, repositoryReviewQuery)

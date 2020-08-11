@@ -83,3 +83,7 @@ func (p *Product) Store(ctx context.Context, product model.Product) error {
 func productKey(id model.ProductID) *datastore.Key {
 	return datastore.IDKey(kinds.product, int64(id), nil)
 }
+
+func (p *Product) Search(_ context.Context, _ repository.ProductQuery) (*repository.ProductSearchResult, error) {
+	panic("not implemented") // TODO: Implement
+}

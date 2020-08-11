@@ -15,3 +15,9 @@ var ProductCreateErrroMessages = struct {
 }{
 	Failed: productCreateErrroMessages.failed,
 }
+
+var ProductSearchErrorMessages = struct {
+	Failed func() string
+}{
+	Failed: productSearchErrorMessages.failed,
+}
