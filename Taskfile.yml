@@ -11,6 +11,7 @@ tasks:
       - "domain/**/*.go"
       - "infrastructure/**/*.go"
       - "usecase/**/*.go"
+      - "lib/**/*.go"
 
   integration_test:
     desc: "インテグレーションテスト実行"

@@ -11,6 +11,7 @@ require (
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1
+	github.com/tj/assert v0.0.3
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381
 	golang.org/x/sys v0.0.0-20200808120158-1030fc2bf1d9 // indirect
 	golang.org/x/tools v0.0.0-20200809012840-6f4f008689da // indirect
