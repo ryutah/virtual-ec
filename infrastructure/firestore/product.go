@@ -9,6 +9,8 @@ import (
 	"github.com/ryutah/virtual-ec/domain"
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
+	"github.com/ryutah/virtual-ec/lib/xfirestore"
+	"google.golang.org/api/iterator"
 )
 
 var productErrMessages = struct {
@@ -16,6 +18,7 @@ var productErrMessages = struct {
 	get             func(model.ProductID, error) string
 	getNoSuchEntity func(model.ProductID) string
 	store           func(model.Product, error) string
+	search          func(err error) string
 }{
 	nextID: func(err error) string {
 		return fmt.Sprintf("failed to allocates id: %v", err)
@@ -29,6 +32,9 @@ var productErrMessages = struct {
 	store: func(p model.Product, err error) string {
 		return fmt.Sprintf("failed to store product(%v): %v", p, err)
 	},
+	search: func(err error) string {
+		return fmt.Sprintf("failed to search product: %v", err)
+	},
 }
 
 type productEntity struct {
@@ -37,12 +43,12 @@ type productEntity struct {
 }
 
 type Product struct {
-	client Client
+	client xfirestore.Client
 }
 
 var _ repository.Product = (*Product)(nil)
 
-func NewProduct(client Client) *Product {
+func NewProduct(client xfirestore.Client) *Product {
 	return &Product{
 		client: client,
 	}
@@ -84,6 +90,26 @@ func productKey(id model.ProductID) *datastore.Key {
 	return datastore.IDKey(kinds.product, int64(id), nil)
 }
 
-func (p *Product) Search(_ context.Context, _ repository.ProductQuery) (*repository.ProductSearchResult, error) {
-	panic("not implemented") // TODO: Implement
+func (p *Product) Search(ctx context.Context, query repository.ProductQuery) (*repository.ProductSearchResult, error) {
+	q := datastore.NewQuery(kinds.product)
+	if name, ok := query.Name(); ok {
+		q = q.Filter("Name=", name)
+	}
+
+	it := p.client.Run(ctx, q)
+	var products []*model.Product
+	for {
+		var entity productEntity
+		key, err := it.Next(&entity)
+		if errors.Is(err, iterator.Done) {
+			break
+		} else if err != nil {
+			return nil, errors.New(productErrMessages.search(err))
+		}
+		products = append(products, model.NewProduct(model.ProductID(key.ID), entity.Name, entity.Price))
+	}
+
+	return &repository.ProductSearchResult{
+		Products: products,
+	}, nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
+	"github.com/ryutah/virtual-ec/lib/xfirestore"
 )
 
 var reviewErrMessages = struct {
@@ -33,12 +34,12 @@ type reviewEntity struct {
 }
 
 type Review struct {
-	client Client
+	client xfirestore.Client
 }
 
 var _ repository.Review = (*Review)(nil)
 
-func NewReview(c Client) *Review {
+func NewReview(c xfirestore.Client) *Review {
 	return &Review{
 		client: c,
 	}

@@ -108,24 +108,24 @@ func TestReview_Search(t *testing.T) {
 			in:   repository.NewReviewQuery().WithProductID(1),
 			store: reviewStore{
 				{
-					key: ReviewKey(1, 1),
-					val: &ReviewEntity{
+					k: ReviewKey(1, 1),
+					v: &ReviewEntity{
 						PostedBy: "user1",
 						Rating:   1,
 						Comment:  "comment1",
 					},
 				},
 				{
-					key: ReviewKey(1, 2),
-					val: &ReviewEntity{
+					k: ReviewKey(1, 2),
+					v: &ReviewEntity{
 						PostedBy: "user2",
 						Rating:   2,
 						Comment:  "comment2",
 					},
 				},
 				{
-					key: ReviewKey(1, 3),
-					val: &ReviewEntity{
+					k: ReviewKey(1, 3),
+					v: &ReviewEntity{
 						PostedBy: "user3",
 						Rating:   3,
 						Comment:  "comment3",

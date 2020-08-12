@@ -19,11 +19,13 @@ var (
 		Get             func(model.ProductID, error) string
 		GetNoSuchEntity func(model.ProductID) string
 		Store           func(model.Product, error) string
+		Search          func(err error) string
 	}{
 		NextID:          productErrMessages.nextID,
 		Get:             productErrMessages.get,
 		GetNoSuchEntity: productErrMessages.getNoSuchEntity,
 		Store:           productErrMessages.store,
+		Search:          productErrMessages.search,
 	}
 
 	ReviewErrMessages = struct {

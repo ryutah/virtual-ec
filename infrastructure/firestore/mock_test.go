@@ -6,17 +6,34 @@ import (
 
 	"cloud.google.com/go/datastore"
 	. "github.com/ryutah/virtual-ec/infrastructure/firestore"
+	"github.com/ryutah/virtual-ec/lib/xfirestore"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/api/iterator"
 )
 
 type clientStore interface {
 	get(*datastore.Key) (v interface{}, ok bool)
 	all() interface{}
+	allSet() []keyValueSet
+}
+
+type keyValueSet interface {
+	key() *datastore.Key
+	value() interface{}
 }
 
 type reviewSet struct {
-	key *datastore.Key
-	val *ReviewEntity
+	keyValueSet
+	k *datastore.Key
+	v *ReviewEntity
+}
+
+func (r reviewSet) key() *datastore.Key {
+	return r.k
+}
+
+func (r reviewSet) value() interface{} {
+	return r.v
 }
 
 type reviewStore []reviewSet
@@ -25,8 +42,8 @@ var _ clientStore = (reviewStore)(nil)
 
 func (r reviewStore) get(key *datastore.Key) (v interface{}, ok bool) {
 	for _, set := range r {
-		if set.key.Equal(key) {
-			return set.val, true
+		if set.key().Equal(key) {
+			return set.value(), true
 		}
 	}
 	return nil, false
@@ -35,14 +52,30 @@ func (r reviewStore) get(key *datastore.Key) (v interface{}, ok bool) {
 func (r reviewStore) all() interface{} {
 	var entities []*ReviewEntity
 	for _, set := range r {
-		entities = append(entities, set.val)
+		entities = append(entities, set.v)
 	}
 	return entities
 }
 
+func (r reviewStore) allSet() []keyValueSet {
+	results := make([]keyValueSet, len(r))
+	for i, v := range r {
+		results[i] = v
+	}
+	return results
+}
+
 type productSet struct {
-	key *datastore.Key
-	val *ProductEntity
+	k *datastore.Key
+	v *ProductEntity
+}
+
+func (p productSet) key() *datastore.Key {
+	return p.k
+}
+
+func (p productSet) value() interface{} {
+	return p.v
 }
 
 type productStore []productSet
@@ -51,8 +84,8 @@ var _ productStore = (productStore)(nil)
 
 func (p productStore) get(key *datastore.Key) (v interface{}, ok bool) {
 	for _, set := range p {
-		if set.key.Equal(key) {
-			return set.val, true
+		if set.key().Equal(key) {
+			return set.value(), true
 		}
 	}
 	return nil, false
@@ -61,18 +94,26 @@ func (p productStore) get(key *datastore.Key) (v interface{}, ok bool) {
 func (p productStore) all() interface{} {
 	var entities []*ProductEntity
 	for _, set := range p {
-		entities = append(entities, set.val)
+		entities = append(entities, set.v)
 	}
 	return entities
 }
 
+func (p productStore) allSet() []keyValueSet {
+	results := make([]keyValueSet, len(p))
+	for i, v := range p {
+		results[i] = v
+	}
+	return results
+}
+
 type mockClient struct {
-	Client
+	xfirestore.Client
 	mock.Mock
 	store clientStore
 }
 
-var _ Client = (*mockClient)(nil)
+var _ xfirestore.Client = (*mockClient)(nil)
 
 func (m *mockClient) withStore(store clientStore) *mockClient {
 	m.store = store
@@ -93,6 +134,10 @@ func (m *mockClient) onGet(ctx, key, v interface{}) *mock.Call {
 
 func (m *mockClient) onGetAll(ctx, query, v interface{}) *mock.Call {
 	return m.On("GetAll", ctx, query, v)
+}
+
+func (m *mockClient) onRun(ctx, datastoreQuery interface{}) *mock.Call {
+	return m.On("Run", ctx, datastoreQuery)
 }
 
 func (m *mockClient) AllocateIDs(ctx context.Context, keys []*datastore.Key) ([]*datastore.Key, error) {
@@ -139,4 +184,48 @@ func (m *mockClient) GetAll(ctx context.Context, q *datastore.Query, v interface
 
 	keys, _ := args.Get(0).([]*datastore.Key)
 	return keys, args.Error(1)
+}
+
+func (m *mockClient) Run(ctx context.Context, q *datastore.Query) xfirestore.Iterator {
+	args := m.Called(ctx, q)
+	it, _ := args.Get(0).(xfirestore.Iterator)
+	return it
+}
+
+type mockIterator struct {
+	mock.Mock
+	xfirestore.Iterator
+	store  []keyValueSet
+	cursor int
+}
+
+func (m *mockIterator) withStore(store clientStore) *mockIterator {
+	m.store = store.allSet()
+	return m
+}
+
+// NOTE(ryutah): ReturnはデフォルトでReturn(nil, nil)が設定される
+// エラーを返すようにしたい場合呼び出し元でReturn(nil, err)と設定すること(第一引数は設定しても無視される)
+func (m *mockIterator) onNext(v interface{}) *mock.Call {
+	return m.On("Next", v).Return(nil, nil)
+}
+
+func (m *mockIterator) Next(v interface{}) (*datastore.Key, error) {
+	args := m.Called(v)
+	if err := args.Error(1); err != nil {
+		return nil, err
+	}
+
+	if m.cursor >= len(m.store) {
+		return nil, iterator.Done
+	}
+	setValue(v, m.store[m.cursor].value())
+	key := m.store[m.cursor].key()
+	m.cursor++
+	return key, args.Error(1)
+}
+
+func setValue(target, src interface{}) {
+	tgtVal, srcVal := reflect.ValueOf(target), reflect.ValueOf(src)
+	tgtVal.Elem().Set(srcVal.Elem())
 }

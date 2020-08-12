@@ -9,6 +9,7 @@ import (
 	perrors "github.com/pkg/errors"
 	"github.com/ryutah/virtual-ec/domain"
 	"github.com/ryutah/virtual-ec/domain/model"
+	"github.com/ryutah/virtual-ec/domain/repository"
 	. "github.com/ryutah/virtual-ec/infrastructure/firestore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -84,8 +85,8 @@ func TestProduct_Get(t *testing.T) {
 
 	client := new(mockClient).withStore(productStore{
 		{
-			key: ProductKey(1),
-			val: &ProductEntity{
+			k: ProductKey(1),
+			v: &ProductEntity{
 				Name:  "Product1",
 				Price: 100,
 			},
@@ -146,4 +147,93 @@ func TestProduct_Get_Failed(t *testing.T) {
 			assert.EqualError(t, perrors.Cause(err), c.expected.Error())
 		})
 	}
+}
+
+func TestProduct_Search(t *testing.T) {
+	type expected struct {
+		args_client_run_datastoreQuery *datastore.Query
+		productSearchResult            *repository.ProductSearchResult
+	}
+	cases := []struct {
+		name     string
+		store    productStore
+		in       repository.ProductQuery
+		expected expected
+	}{
+		{
+			name: "複数件取得",
+			store: productStore{
+				{
+					k: ProductKey(1),
+					v: &ProductEntity{Name: "product1", Price: 1},
+				},
+				{
+					k: ProductKey(2),
+					v: &ProductEntity{Name: "product2", Price: 2},
+				},
+				{
+					k: ProductKey(3),
+					v: &ProductEntity{Name: "product3", Price: 3},
+				},
+			},
+			in: repository.NewProductQuery().WithName("product"),
+			expected: expected{
+				args_client_run_datastoreQuery: datastore.NewQuery(Kinds.Product).Filter("Name=", "product"),
+				productSearchResult: &repository.ProductSearchResult{
+					Products: []*model.Product{
+						model.NewProduct(1, "product1", 1),
+						model.NewProduct(2, "product2", 2),
+						model.NewProduct(3, "product3", 3),
+					},
+				},
+			},
+		},
+		{
+			name:  "結果0件",
+			store: productStore{},
+			in:    repository.NewProductQuery().WithName("product"),
+			expected: expected{
+				args_client_run_datastoreQuery: datastore.NewQuery(Kinds.Product).Filter("Name=", "product"),
+				productSearchResult: &repository.ProductSearchResult{
+					Products: nil,
+				},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			it := new(mockIterator).withStore(c.store)
+			it.onNext(new(ProductEntity)).Times(len(c.store) + 1)
+			client := new(mockClient)
+			client.onRun(ctx, c.expected.args_client_run_datastoreQuery).Return(it)
+
+			product := NewProduct(client)
+			got, err := product.Search(ctx, c.in)
+
+			it.AssertExpectations(t)
+			client.AssertExpectations(t)
+			assert.Equal(t, c.expected.productSearchResult, got)
+			assert.Nil(t, err)
+		})
+	}
+}
+
+func TestProduct_Search_Failed(t *testing.T) {
+	ctx := context.Background()
+
+	it := new(mockIterator).withStore(productStore{})
+	it.onNext(new(ProductEntity)).Return(nil, errors.New("error")).Times(1)
+	client := new(mockClient)
+	client.onRun(ctx, mock.Anything).Return(it)
+
+	product := NewProduct(client)
+	got, err := product.Search(ctx, repository.NewProductQuery())
+
+	it.AssertExpectations(t)
+	client.AssertExpectations(t)
+	assert.Nil(t, got)
+	assert.EqualError(t, err, ProductErrMessages.Search(errors.New("error")))
 }
