@@ -61,7 +61,7 @@ func TestProduct_Store(t *testing.T) {
 		Return(ProductKey(1), nil)
 
 	product := NewProduct(client)
-	err := product.Store(ctx, *model.NewProduct(1, "product", 100))
+	err := product.Store(ctx, *model.ReCreateProduct(1, "product", 100))
 
 	client.AssertExpectations(t)
 	assert.Nil(t, err)
@@ -72,7 +72,7 @@ func TestProduct_Store_Failed(t *testing.T) {
 	client := new(mockClient)
 	client.onPut(mock.Anything, mock.Anything, mock.Anything).Return(nil, dummyErr)
 
-	modelProduct := model.NewProduct(1, "product", 100)
+	modelProduct := model.ReCreateProduct(1, "product", 100)
 	product := NewProduct(client)
 	err := product.Store(context.Background(), *modelProduct)
 
@@ -98,7 +98,7 @@ func TestProduct_Get(t *testing.T) {
 	got, err := product.Get(ctx, 1)
 
 	client.AssertExpectations(t)
-	assert.Equal(t, model.NewProduct(1, "Product1", 100), got)
+	assert.Equal(t, model.ReCreateProduct(1, "Product1", 100), got)
 	assert.Nil(t, err)
 }
 
@@ -181,9 +181,9 @@ func TestProduct_Search(t *testing.T) {
 				args_client_run_datastoreQuery: datastore.NewQuery(Kinds.Product).Filter("Name=", "product"),
 				productSearchResult: &repository.ProductSearchResult{
 					Products: []*model.Product{
-						model.NewProduct(1, "product1", 1),
-						model.NewProduct(2, "product2", 2),
-						model.NewProduct(3, "product3", 3),
+						model.ReCreateProduct(1, "product1", 1),
+						model.ReCreateProduct(2, "product2", 2),
+						model.ReCreateProduct(3, "product3", 3),
 					},
 				},
 			},

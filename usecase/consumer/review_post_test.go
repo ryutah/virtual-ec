@@ -95,7 +95,7 @@ func TestReviewPost_Post(t *testing.T) {
 				},
 			},
 			mocks: mocks{
-				repository_product_get_product: model.NewProduct(1, "product", 100),
+				repository_product_get_product: model.ReCreateProduct(1, "product", 100),
 				repository_review_nextID:       2,
 			},
 			expected: expected{
@@ -182,7 +182,7 @@ func TestReviewPost_Post_Failed_NextID(t *testing.T) {
 	dummyError := errors.New("error")
 
 	productRepo := new(mockProductRepository)
-	productRepo.onGet(mock.Anything, mock.Anything).Return(model.NewProduct(1, "product", 100), nil)
+	productRepo.onGet(mock.Anything, mock.Anything).Return(model.ReCreateProduct(1, "product", 100), nil)
 	reviewRepo := new(mockReviewRepository)
 	reviewRepo.onNextID(mock.Anything, mock.Anything).Return(model.ReviewID(0), dummyError)
 	output := new(mockReviewPostOutputPort)
@@ -203,7 +203,7 @@ func TestReviewPost_Post_Failed_Store(t *testing.T) {
 	dummyError := errors.New("error")
 
 	productRepo := new(mockProductRepository)
-	productRepo.onGet(mock.Anything, mock.Anything).Return(model.NewProduct(1, "product", 100), nil)
+	productRepo.onGet(mock.Anything, mock.Anything).Return(model.ReCreateProduct(1, "product", 100), nil)
 	reviewRepo := new(mockReviewRepository)
 	reviewRepo.onNextID(mock.Anything, mock.Anything).Return(model.ReviewID(1), nil)
 	reviewRepo.onStore(mock.Anything, mock.Anything).Return(dummyError)

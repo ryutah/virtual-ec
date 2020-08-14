@@ -84,7 +84,7 @@ func TestReview_Write(t *testing.T) {
 	}{
 		{
 			name:   "正常系",
-			review: model.NewProduct(1, "p1", 100).NewReview(2),
+			review: model.ReCreateProduct(1, "p1", 100).NewReview(2),
 			in: in{
 				postedBy: "user1",
 				rating:   3,

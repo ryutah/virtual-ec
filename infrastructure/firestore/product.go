@@ -72,7 +72,7 @@ func (p *Product) Get(ctx context.Context, id model.ProductID) (*model.Product, 
 		return nil, errors.New(productErrMessages.get(id, err))
 	}
 
-	return model.NewProduct(id, entity.Name, entity.Price), nil
+	return model.ReCreateProduct(id, entity.Name, entity.Price), nil
 }
 
 func (p *Product) Store(ctx context.Context, product model.Product) error {
@@ -106,7 +106,7 @@ func (p *Product) Search(ctx context.Context, query repository.ProductQuery) (*r
 		} else if err != nil {
 			return nil, errors.New(productErrMessages.search(err))
 		}
-		products = append(products, model.NewProduct(model.ProductID(key.ID), entity.Name, entity.Price))
+		products = append(products, model.ReCreateProduct(model.ProductID(key.ID), entity.Name, entity.Price))
 	}
 
 	return &repository.ProductSearchResult{

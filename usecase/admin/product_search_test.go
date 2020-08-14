@@ -68,9 +68,9 @@ func TestProductSearch_Search(t *testing.T) {
 			mocks: mocks{
 				repository_product_search_produtSearchResult: &repository.ProductSearchResult{
 					Products: []*model.Product{
-						model.NewProduct(1, "product1", 100),
-						model.NewProduct(2, "product2", 200),
-						model.NewProduct(3, "product3", 300),
+						model.ReCreateProduct(1, "product1", 100),
+						model.ReCreateProduct(2, "product2", 200),
+						model.ReCreateProduct(3, "product3", 300),
 					},
 				},
 			},
@@ -91,9 +91,9 @@ func TestProductSearch_Search(t *testing.T) {
 			mocks: mocks{
 				repository_product_search_produtSearchResult: &repository.ProductSearchResult{
 					Products: []*model.Product{
-						model.NewProduct(1, "product1", 100),
-						model.NewProduct(2, "product2", 200),
-						model.NewProduct(3, "product3", 300),
+						model.ReCreateProduct(1, "product1", 100),
+						model.ReCreateProduct(2, "product2", 200),
+						model.ReCreateProduct(3, "product3", 300),
 					},
 				},
 			},

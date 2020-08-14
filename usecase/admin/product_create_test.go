@@ -77,7 +77,7 @@ func TestProductCreator_Append(t *testing.T) {
 				repository_product_nextID: 1,
 			},
 			expected: expected{
-				args_repository_product_store_product: *model.NewProduct(1, "product1", 1000),
+				args_repository_product_store_product: *model.ReCreateProduct(1, "product1", 1000),
 				args_productCreateOutputPort_productCreateSuccess: ProductCreateSuccess{
 					ID:    1,
 					Name:  "product1",

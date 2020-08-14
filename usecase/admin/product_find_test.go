@@ -63,7 +63,7 @@ func TestProductFind_Find(t *testing.T) {
 			name: "正常系",
 			in:   1,
 			mocks: mocks{
-				repository_product_get_product: model.NewProduct(
+				repository_product_get_product: model.ReCreateProduct(
 					1, "Product1", 100,
 				),
 			},

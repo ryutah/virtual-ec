@@ -61,7 +61,7 @@ func (p *ProductCreate) Create(ctx context.Context, input ProductCreateInputPort
 		return p.handleError(ctx, err)
 	}
 
-	product := model.NewProduct(id, input.Name(), input.Price())
+	product := model.ReCreateProduct(id, input.Name(), input.Price())
 	if err := p.repo.product.Store(ctx, *product); err != nil {
 		return p.handleError(ctx, err)
 	}
