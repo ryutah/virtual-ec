@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/ryutah/virtual-ec/domain/model"
@@ -37,7 +36,7 @@ type (
 	}
 
 	ReviewListFailed struct {
-		Err error
+		Err string
 	}
 )
 
@@ -64,7 +63,7 @@ func (r *ReviewList) List(ctx context.Context, productID int) (success bool) {
 	if err != nil {
 		xlog.Errorf(ctx, "failed to get review list: %+v", err)
 		r.output.Failed(ReviewListFailed{
-			Err: errors.New(reviewListErrorMessages.failed(model.ProductID(productID))),
+			Err: reviewListErrorMessages.failed(model.ProductID(productID)),
 		})
 		return false
 	}

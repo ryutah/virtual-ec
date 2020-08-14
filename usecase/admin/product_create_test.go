@@ -114,7 +114,7 @@ func TestProductCreator_Append_NextID_Failed(t *testing.T) {
 	productRepo.onNextID(mock.Anything).Return(model.ProductID(0), dummyError)
 	output := new(mockProductCreateOutputPort)
 	output.onFailed(ProductCreateFailed{
-		Err: errors.New(ProductCreateErrroMessages.Failed()),
+		Err: ProductCreateErrroMessages.Failed(),
 	})
 
 	creator := NewProductCreate(output, productRepo)
@@ -136,7 +136,7 @@ func TestProductCreator_Append_Store_Failed(t *testing.T) {
 	productRepo.onStore(mock.Anything, mock.Anything).Return(dummyError)
 	output := new(mockProductCreateOutputPort)
 	output.onFailed(ProductCreateFailed{
-		Err: errors.New(ProductCreateErrroMessages.Failed()),
+		Err: ProductCreateErrroMessages.Failed(),
 	})
 
 	creator := NewProductCreate(output, productRepo)

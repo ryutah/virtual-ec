@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"errors"
-
-	perrors "github.com/pkg/errors"
+	"github.com/pkg/errors"
 	"github.com/ryutah/virtual-ec/domain"
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
@@ -29,7 +27,7 @@ type ProductFindOutputPort interface {
 
 type (
 	ProductFindFailed struct {
-		Err error
+		Err string
 	}
 
 	ProductFindSuccess struct {
@@ -69,15 +67,15 @@ func (p *ProductFind) Find(ctx context.Context, id int) (success bool) {
 }
 
 func (p *ProductFind) handleError(ctx context.Context, id model.ProductID, err error) bool {
-	if perrors.Is(err, domain.ErrNoSuchEntity) {
+	if errors.Is(err, domain.ErrNoSuchEntity) {
 		xlog.Warningf(ctx, "product not found: %+v", err)
 		p.output.NotFound(ProductFindFailed{
-			Err: errors.New(productFindFailedErrorMessages.notFound(id)),
+			Err: productFindFailedErrorMessages.notFound(id),
 		})
 	} else {
 		xlog.Errorf(ctx, "failed to find product: %+v", err)
 		p.output.Failed(ProductFindFailed{
-			Err: errors.New(productFindFailedErrorMessages.failed(id)),
+			Err: productFindFailedErrorMessages.failed(id),
 		})
 	}
 	return false

@@ -2,10 +2,9 @@ package consumer
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
-	perrors "github.com/pkg/errors"
+	"github.com/pkg/errors"
 	"github.com/ryutah/virtual-ec/domain"
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
@@ -46,7 +45,7 @@ type (
 	}
 
 	ReviewPostFailed struct {
-		Err error
+		Err string
 	}
 )
 
@@ -99,15 +98,15 @@ func (r *ReviewPost) Post(ctx context.Context, productID int, input ReviewPostIn
 }
 
 func (r *ReviewPost) handleGetProductError(ctx context.Context, id model.ProductID, err error) bool {
-	if perrors.Is(err, domain.ErrNoSuchEntity) {
+	if errors.Is(err, domain.ErrNoSuchEntity) {
 		xlog.Warningf(ctx, "product not found: %+v", err)
 		r.output.ProductNotFound(ReviewPostFailed{
-			Err: errors.New(reviewPostErrorMessages.productNotFound(id)),
+			Err: reviewPostErrorMessages.productNotFound(id),
 		})
 	} else {
 		xlog.Errorf(ctx, "failed to get product: %+v", err)
 		r.output.Failed(ReviewPostFailed{
-			Err: errors.New(reviewPostErrorMessages.failed()),
+			Err: reviewPostErrorMessages.failed(),
 		})
 	}
 	return false
@@ -116,7 +115,7 @@ func (r *ReviewPost) handleGetProductError(ctx context.Context, id model.Product
 func (r *ReviewPost) handleError(ctx context.Context, err error) bool {
 	xlog.Errorf(ctx, "failed to post review: %+v", err)
 	r.output.Failed(ReviewPostFailed{
-		Err: errors.New(reviewPostErrorMessages.failed()),
+		Err: reviewPostErrorMessages.failed(),
 	})
 	return false
 }

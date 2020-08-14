@@ -153,7 +153,7 @@ func TestProductSearch_Search_Failed(t *testing.T) {
 	productRepo.onSearch(ctx, mock.Anything).Return(mock.Anything, errors.New("error"))
 	output := new(mockProductSearchOutputPort)
 	output.onFailed(ProductSearchFailed{
-		Err: errors.New(ProductSearchErrorMessages.Failed()),
+		Err: ProductSearchErrorMessages.Failed(),
 	})
 
 	product := NewProductSearch(output, productRepo)

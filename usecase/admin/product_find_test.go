@@ -107,7 +107,7 @@ func TestProductFind_Find_Get_Filed(t *testing.T) {
 	productRepo.onGet(mock.Anything, mock.Anything).Return(nil, dummyError)
 	output := new(mockProductFindOutputPort)
 	output.onFailed(ProductFindFailed{
-		Err: errors.New(ProductFindFailedErrorMessages.Failed(1)),
+		Err: ProductFindFailedErrorMessages.Failed(1),
 	})
 
 	productFind := NewProductFind(output, productRepo)
@@ -126,7 +126,7 @@ func TestProductFind_Find_Get_NotFound(t *testing.T) {
 	productRepo.onGet(mock.Anything, mock.Anything).Return(nil, dummyError)
 	output := new(mockProductFindOutputPort)
 	output.onNotFound(ProductFindFailed{
-		Err: errors.New(ProductFindFailedErrorMessages.NotFound(1)),
+		Err: ProductFindFailedErrorMessages.NotFound(1),
 	})
 
 	productFind := NewProductFind(output, productRepo)

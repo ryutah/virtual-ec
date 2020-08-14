@@ -2,7 +2,6 @@ package admin
 
 import (
 	"context"
-	"errors"
 
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
@@ -35,7 +34,7 @@ type (
 	}
 
 	ProductCreateFailed struct {
-		Err error
+		Err string
 	}
 )
 
@@ -77,7 +76,7 @@ func (p *ProductCreate) Create(ctx context.Context, input ProductCreateInputPort
 func (p *ProductCreate) handleError(ctx context.Context, err error) bool {
 	xlog.Errorf(ctx, "failed to create product: %+v", err)
 	p.output.Failed(ProductCreateFailed{
-		Err: errors.New(productCreateErrroMessages.failed()),
+		Err: productCreateErrroMessages.failed(),
 	})
 	return false
 }

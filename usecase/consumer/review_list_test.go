@@ -125,7 +125,7 @@ func TestReviewList_List_Failed(t *testing.T) {
 	reviewRepo.onSearch(ctx, mock.Anything).Return(nil, dummyError)
 	output := new(mockReviewListOutputPort)
 	output.onFailed(ReviewListFailed{
-		Err: errors.New(ReviewListErrorMessages.Failed(1)),
+		Err: ReviewListErrorMessages.Failed(1),
 	})
 
 	review := NewReviewList(output, reviewRepo)

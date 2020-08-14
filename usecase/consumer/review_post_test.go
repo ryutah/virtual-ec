@@ -146,7 +146,7 @@ func TestReviewPost_Post_Failed_ProductGet(t *testing.T) {
 	reviewRepo := new(mockReviewRepository)
 	output := new(mockReviewPostOutputPort)
 	output.onFailed(ReviewPostFailed{
-		Err: errors.New(ReviewPostErrorMessages.Failed()),
+		Err: ReviewPostErrorMessages.Failed(),
 	})
 
 	review := NewReviewPost(output, reviewRepo, productRepo)
@@ -166,7 +166,7 @@ func TestReviewPost_Post_Failed_ProductGet_ProductNotFound(t *testing.T) {
 	reviewRepo := new(mockReviewRepository)
 	output := new(mockReviewPostOutputPort)
 	output.onProductNotFound(ReviewPostFailed{
-		Err: errors.New(ReviewPostErrorMessages.ProductNotFound(1)),
+		Err: ReviewPostErrorMessages.ProductNotFound(1),
 	})
 
 	review := NewReviewPost(output, reviewRepo, productRepo)
@@ -187,7 +187,7 @@ func TestReviewPost_Post_Failed_NextID(t *testing.T) {
 	reviewRepo.onNextID(mock.Anything, mock.Anything).Return(model.ReviewID(0), dummyError)
 	output := new(mockReviewPostOutputPort)
 	output.onFailed(ReviewPostFailed{
-		Err: errors.New(ReviewPostErrorMessages.Failed()),
+		Err: ReviewPostErrorMessages.Failed(),
 	})
 
 	review := NewReviewPost(output, reviewRepo, productRepo)
@@ -209,7 +209,7 @@ func TestReviewPost_Post_Failed_Store(t *testing.T) {
 	reviewRepo.onStore(mock.Anything, mock.Anything).Return(dummyError)
 	output := new(mockReviewPostOutputPort)
 	output.onFailed(ReviewPostFailed{
-		Err: errors.New(ReviewPostErrorMessages.Failed()),
+		Err: ReviewPostErrorMessages.Failed(),
 	})
 
 	review := NewReviewPost(output, reviewRepo, productRepo)
