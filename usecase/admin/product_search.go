@@ -41,25 +41,23 @@ type (
 )
 
 type ProductSearch struct {
-	output ProductSearchOutputPort
-	repo   struct {
+	repo struct {
 		product repository.Product
 	}
 }
 
-func NewProductSearch(output ProductSearchOutputPort, productRepo repository.Product) *ProductSearch {
+func NewProductSearch(productRepo repository.Product) *ProductSearch {
 	return &ProductSearch{
-		output: output,
 		repo: struct{ product repository.Product }{
 			product: productRepo,
 		},
 	}
 }
 
-func (p *ProductSearch) Search(ctx context.Context, input ProductSearchInputPort) (success bool) {
-	result, err := p.repo.product.Search(ctx, p.toQuery(input))
+func (p *ProductSearch) Search(ctx context.Context, in ProductSearchInputPort, out ProductSearchOutputPort) (success bool) {
+	result, err := p.repo.product.Search(ctx, p.toQuery(in))
 	if err != nil {
-		return p.handleError(ctx, err)
+		return p.handleError(ctx, err, out)
 	}
 
 	var products []*ProductSearchProductDetail
@@ -70,7 +68,7 @@ func (p *ProductSearch) Search(ctx context.Context, input ProductSearchInputPort
 			Price: product.Price(),
 		})
 	}
-	p.output.Success(ProductSearchSuccess{
+	out.Success(ProductSearchSuccess{
 		Products: products,
 	})
 	return true
@@ -84,9 +82,9 @@ func (p *ProductSearch) toQuery(input ProductSearchInputPort) repository.Product
 	return query
 }
 
-func (p *ProductSearch) handleError(ctx context.Context, err error) bool {
+func (p *ProductSearch) handleError(ctx context.Context, err error, out ProductSearchOutputPort) bool {
 	xlog.Errorf(ctx, "failed to product search: %+v", err)
-	p.output.Failed(ProductSearchFailed{
+	out.Failed(ProductSearchFailed{
 		Err: productSearchErrorMessages.failed(),
 	})
 	return false

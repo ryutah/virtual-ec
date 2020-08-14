@@ -107,8 +107,8 @@ func TestReviewList_List(t *testing.T) {
 			output := new(mockReviewListOutputPort)
 			output.onSuccess(c.expected.args_reviewListOutputPort_reviewListSuccess)
 
-			review := NewReviewList(output, reviewRepo)
-			success := review.List(ctx, c.in)
+			review := NewReviewList(reviewRepo)
+			success := review.List(ctx, c.in, output)
 
 			reviewRepo.AssertExpectations(t)
 			output.AssertExpectations(t)
@@ -128,8 +128,8 @@ func TestReviewList_List_Failed(t *testing.T) {
 		Err: ReviewListErrorMessages.Failed(1),
 	})
 
-	review := NewReviewList(output, reviewRepo)
-	success := review.List(ctx, 1)
+	review := NewReviewList(reviewRepo)
+	success := review.List(ctx, 1, output)
 
 	reviewRepo.AssertExpectations(t)
 	output.AssertExpectations(t)

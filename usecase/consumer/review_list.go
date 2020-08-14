@@ -41,28 +41,26 @@ type (
 )
 
 type ReviewList struct {
-	output ReviewListOutputPort
-	repo   struct {
+	repo struct {
 		review repository.Review
 	}
 }
 
-func NewReviewList(output ReviewListOutputPort, reviewRepo repository.Review) *ReviewList {
+func NewReviewList(reviewRepo repository.Review) *ReviewList {
 	return &ReviewList{
-		output: output,
 		repo: struct{ review repository.Review }{
 			review: reviewRepo,
 		},
 	}
 }
 
-func (r *ReviewList) List(ctx context.Context, productID int) (success bool) {
+func (r *ReviewList) List(ctx context.Context, productID int, out ReviewListOutputPort) (success bool) {
 	result, err := r.repo.review.Search(
 		ctx, repository.NewReviewQuery().WithProductID(model.ProductID(productID)),
 	)
 	if err != nil {
 		xlog.Errorf(ctx, "failed to get review list: %+v", err)
-		r.output.Failed(ReviewListFailed{
+		out.Failed(ReviewListFailed{
 			Err: reviewListErrorMessages.failed(model.ProductID(productID)),
 		})
 		return false
@@ -78,7 +76,7 @@ func (r *ReviewList) List(ctx context.Context, productID int) (success bool) {
 			Comment:  r.Comment(),
 		})
 	}
-	r.output.Success(ReviewListSuccess{
+	out.Success(ReviewListSuccess{
 		Reviews: responseReviews,
 	})
 	return true

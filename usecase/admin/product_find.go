@@ -38,27 +38,25 @@ type (
 )
 
 type ProductFind struct {
-	output ProductFindOutputPort
-	repo   struct {
+	repo struct {
 		product repository.Product
 	}
 }
 
-func NewProductFind(output ProductFindOutputPort, productRepo repository.Product) *ProductFind {
+func NewProductFind(productRepo repository.Product) *ProductFind {
 	return &ProductFind{
-		output: output,
 		repo: struct{ product repository.Product }{
 			product: productRepo,
 		},
 	}
 }
 
-func (p *ProductFind) Find(ctx context.Context, id int) (success bool) {
+func (p *ProductFind) Find(ctx context.Context, id int, out ProductFindOutputPort) (success bool) {
 	product, err := p.repo.product.Get(ctx, model.ProductID(id))
 	if err != nil {
-		return p.handleError(ctx, model.ProductID(id), err)
+		return p.handleError(ctx, model.ProductID(id), err, out)
 	}
-	p.output.Success(ProductFindSuccess{
+	out.Success(ProductFindSuccess{
 		ID:    int(product.ID()),
 		Name:  product.Name(),
 		Price: product.Price(),
@@ -66,15 +64,15 @@ func (p *ProductFind) Find(ctx context.Context, id int) (success bool) {
 	return true
 }
 
-func (p *ProductFind) handleError(ctx context.Context, id model.ProductID, err error) bool {
+func (p *ProductFind) handleError(ctx context.Context, id model.ProductID, err error, out ProductFindOutputPort) bool {
 	if errors.Is(err, domain.ErrNoSuchEntity) {
 		xlog.Warningf(ctx, "product not found: %+v", err)
-		p.output.NotFound(ProductFindFailed{
+		out.NotFound(ProductFindFailed{
 			Err: productFindFailedErrorMessages.notFound(id),
 		})
 	} else {
 		xlog.Errorf(ctx, "failed to find product: %+v", err)
-		p.output.Failed(ProductFindFailed{
+		out.Failed(ProductFindFailed{
 			Err: productFindFailedErrorMessages.failed(id),
 		})
 	}

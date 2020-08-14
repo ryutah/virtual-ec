@@ -136,8 +136,8 @@ func TestProductSearch_Search(t *testing.T) {
 			output := new(mockProductSearchOutputPort)
 			output.onSuccess(c.expected.args_productSearchOutputPort_produtSearchSuccess)
 
-			product := NewProductSearch(output, productRepo)
-			success := product.Search(ctx, c.in)
+			product := NewProductSearch(productRepo)
+			success := product.Search(ctx, c.in, output)
 
 			productRepo.AssertExpectations(t)
 			output.AssertExpectations(t)
@@ -156,8 +156,8 @@ func TestProductSearch_Search_Failed(t *testing.T) {
 		Err: ProductSearchErrorMessages.Failed(),
 	})
 
-	product := NewProductSearch(output, productRepo)
-	success := product.Search(ctx, productSearchInutPort{})
+	product := NewProductSearch(productRepo)
+	success := product.Search(ctx, productSearchInutPort{}, output)
 
 	productRepo.AssertExpectations(t)
 	output.AssertExpectations(t)

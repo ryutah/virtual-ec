@@ -50,16 +50,14 @@ type (
 )
 
 type ReviewPost struct {
-	output ReviewPostOutputPort
-	repo   struct {
+	repo struct {
 		review  repository.Review
 		product repository.Product
 	}
 }
 
-func NewReviewPost(output ReviewPostOutputPort, reviewRepo repository.Review, productRepo repository.Product) *ReviewPost {
+func NewReviewPost(reviewRepo repository.Review, productRepo repository.Product) *ReviewPost {
 	return &ReviewPost{
-		output: output,
 		repo: struct {
 			review  repository.Review
 			product repository.Product
@@ -70,24 +68,24 @@ func NewReviewPost(output ReviewPostOutputPort, reviewRepo repository.Review, pr
 	}
 }
 
-func (r *ReviewPost) Post(ctx context.Context, productID int, input ReviewPostInputPort) (success bool) {
+func (r *ReviewPost) Post(ctx context.Context, productID int, in ReviewPostInputPort, out ReviewPostOutputPort) (success bool) {
 	product, err := r.repo.product.Get(ctx, model.ProductID(productID))
 	if err != nil {
-		return r.handleGetProductError(ctx, model.ProductID(productID), err)
+		return r.handleGetProductError(ctx, model.ProductID(productID), err, out)
 	}
 	id, err := r.repo.review.NextID(ctx, model.ProductID(productID))
 	if err != nil {
-		return r.handleError(ctx, err)
+		return r.handleError(ctx, err, out)
 	}
 
 	review := product.NewReview(id)
-	review.Write(input.PostedBy(), input.Rating(), input.Comment())
+	review.Write(in.PostedBy(), in.Rating(), in.Comment())
 
 	if err := r.repo.review.Store(ctx, *review); err != nil {
-		return r.handleError(ctx, err)
+		return r.handleError(ctx, err, out)
 	}
 
-	r.output.Success(ReviewPostSuccess{
+	out.Success(ReviewPostSuccess{
 		ID:       review.ID(),
 		ReviewTo: review.ReviewTo(),
 		PostedBy: review.PostedBy(),
@@ -97,24 +95,24 @@ func (r *ReviewPost) Post(ctx context.Context, productID int, input ReviewPostIn
 	return true
 }
 
-func (r *ReviewPost) handleGetProductError(ctx context.Context, id model.ProductID, err error) bool {
+func (r *ReviewPost) handleGetProductError(ctx context.Context, id model.ProductID, err error, out ReviewPostOutputPort) bool {
 	if errors.Is(err, domain.ErrNoSuchEntity) {
 		xlog.Warningf(ctx, "product not found: %+v", err)
-		r.output.ProductNotFound(ReviewPostFailed{
+		out.ProductNotFound(ReviewPostFailed{
 			Err: reviewPostErrorMessages.productNotFound(id),
 		})
 	} else {
 		xlog.Errorf(ctx, "failed to get product: %+v", err)
-		r.output.Failed(ReviewPostFailed{
+		out.Failed(ReviewPostFailed{
 			Err: reviewPostErrorMessages.failed(),
 		})
 	}
 	return false
 }
 
-func (r *ReviewPost) handleError(ctx context.Context, err error) bool {
+func (r *ReviewPost) handleError(ctx context.Context, err error, out ReviewPostOutputPort) bool {
 	xlog.Errorf(ctx, "failed to post review: %+v", err)
-	r.output.Failed(ReviewPostFailed{
+	out.Failed(ReviewPostFailed{
 		Err: reviewPostErrorMessages.failed(),
 	})
 	return false

@@ -97,8 +97,8 @@ func TestProductCreator_Append(t *testing.T) {
 			output := new(mockProductCreateOutputPort)
 			output.onSuccess(c.expected.args_productCreateOutputPort_productCreateSuccess)
 
-			creator := NewProductCreate(output, productRepo)
-			success := creator.Create(ctx, c.in)
+			creator := NewProductCreate(productRepo)
+			success := creator.Create(ctx, c.in, output)
 
 			productRepo.AssertExpectations(t)
 			output.AssertExpectations(t)
@@ -117,11 +117,11 @@ func TestProductCreator_Append_NextID_Failed(t *testing.T) {
 		Err: ProductCreateErrroMessages.Failed(),
 	})
 
-	creator := NewProductCreate(output, productRepo)
+	creator := NewProductCreate(productRepo)
 	success := creator.Create(context.Background(), productCreateImputPort{
 		name:  "test",
 		price: 100,
-	})
+	}, output)
 
 	productRepo.AssertExpectations(t)
 	output.AssertExpectations(t)
@@ -139,11 +139,11 @@ func TestProductCreator_Append_Store_Failed(t *testing.T) {
 		Err: ProductCreateErrroMessages.Failed(),
 	})
 
-	creator := NewProductCreate(output, productRepo)
+	creator := NewProductCreate(productRepo)
 	success := creator.Create(context.Background(), productCreateImputPort{
 		name:  "test",
 		price: 100,
-	})
+	}, output)
 
 	productRepo.AssertExpectations(t)
 	output.AssertExpectations(t)

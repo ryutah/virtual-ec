@@ -39,33 +39,31 @@ type (
 )
 
 type ProductCreate struct {
-	output ProductCreateOutputPort
-	repo   struct {
+	repo struct {
 		product repository.Product
 	}
 }
 
-func NewProductCreate(output ProductCreateOutputPort, productRepo repository.Product) *ProductCreate {
+func NewProductCreate(productRepo repository.Product) *ProductCreate {
 	return &ProductCreate{
-		output: output,
 		repo: struct{ product repository.Product }{
 			product: productRepo,
 		},
 	}
 }
 
-func (p *ProductCreate) Create(ctx context.Context, input ProductCreateInputPort) (success bool) {
+func (p *ProductCreate) Create(ctx context.Context, in ProductCreateInputPort, out ProductCreateOutputPort) (success bool) {
 	id, err := p.repo.product.NextID(ctx)
 	if err != nil {
-		return p.handleError(ctx, err)
+		return p.handleError(ctx, err, out)
 	}
 
-	product := model.ReCreateProduct(id, input.Name(), input.Price())
+	product := model.ReCreateProduct(id, in.Name(), in.Price())
 	if err := p.repo.product.Store(ctx, *product); err != nil {
-		return p.handleError(ctx, err)
+		return p.handleError(ctx, err, out)
 	}
 
-	p.output.Success(ProductCreateSuccess{
+	out.Success(ProductCreateSuccess{
 		ID:    int(product.ID()),
 		Name:  product.Name(),
 		Price: product.Price(),
@@ -73,9 +71,9 @@ func (p *ProductCreate) Create(ctx context.Context, input ProductCreateInputPort
 	return true
 }
 
-func (p *ProductCreate) handleError(ctx context.Context, err error) bool {
+func (p *ProductCreate) handleError(ctx context.Context, err error, out ProductCreateOutputPort) bool {
 	xlog.Errorf(ctx, "failed to create product: %+v", err)
-	p.output.Failed(ProductCreateFailed{
+	out.Failed(ProductCreateFailed{
 		Err: productCreateErrroMessages.failed(),
 	})
 	return false

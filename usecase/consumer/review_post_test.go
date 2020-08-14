@@ -127,8 +127,8 @@ func TestReviewPost_Post(t *testing.T) {
 			output := new(mockReviewPostOutputPort)
 			output.onSuccess(c.expected.args_reviewPostOutputPort_reviewPostSuccess)
 
-			review := NewReviewPost(output, reviewRepo, productRepo)
-			success := review.Post(ctx, c.in.productID, c.in.input)
+			review := NewReviewPost(reviewRepo, productRepo)
+			success := review.Post(ctx, c.in.productID, c.in.input, output)
 
 			productRepo.AssertExpectations(t)
 			reviewRepo.AssertExpectations(t)
@@ -149,8 +149,8 @@ func TestReviewPost_Post_Failed_ProductGet(t *testing.T) {
 		Err: ReviewPostErrorMessages.Failed(),
 	})
 
-	review := NewReviewPost(output, reviewRepo, productRepo)
-	success := review.Post(context.Background(), 1, reviewPostInputPort{})
+	review := NewReviewPost(reviewRepo, productRepo)
+	success := review.Post(context.Background(), 1, reviewPostInputPort{}, output)
 
 	productRepo.AssertExpectations(t)
 	reviewRepo.AssertExpectations(t)
@@ -169,8 +169,8 @@ func TestReviewPost_Post_Failed_ProductGet_ProductNotFound(t *testing.T) {
 		Err: ReviewPostErrorMessages.ProductNotFound(1),
 	})
 
-	review := NewReviewPost(output, reviewRepo, productRepo)
-	success := review.Post(context.Background(), 1, reviewPostInputPort{})
+	review := NewReviewPost(reviewRepo, productRepo)
+	success := review.Post(context.Background(), 1, reviewPostInputPort{}, output)
 
 	productRepo.AssertExpectations(t)
 	reviewRepo.AssertExpectations(t)
@@ -190,8 +190,8 @@ func TestReviewPost_Post_Failed_NextID(t *testing.T) {
 		Err: ReviewPostErrorMessages.Failed(),
 	})
 
-	review := NewReviewPost(output, reviewRepo, productRepo)
-	success := review.Post(context.Background(), 1, reviewPostInputPort{})
+	review := NewReviewPost(reviewRepo, productRepo)
+	success := review.Post(context.Background(), 1, reviewPostInputPort{}, output)
 
 	productRepo.AssertExpectations(t)
 	reviewRepo.AssertExpectations(t)
@@ -212,8 +212,8 @@ func TestReviewPost_Post_Failed_Store(t *testing.T) {
 		Err: ReviewPostErrorMessages.Failed(),
 	})
 
-	review := NewReviewPost(output, reviewRepo, productRepo)
-	success := review.Post(context.Background(), 1, reviewPostInputPort{})
+	review := NewReviewPost(reviewRepo, productRepo)
+	success := review.Post(context.Background(), 1, reviewPostInputPort{}, output)
 
 	productRepo.AssertExpectations(t)
 	reviewRepo.AssertExpectations(t)

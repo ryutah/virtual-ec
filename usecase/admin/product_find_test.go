@@ -89,8 +89,8 @@ func TestProductFind_Find(t *testing.T) {
 			output := new(mockProductFindOutputPort)
 			output.onSuccess(c.expected.args_product_find_output_port_productFindSuccess)
 
-			productFind := NewProductFind(output, productRepo)
-			success := productFind.Find(ctx, c.in)
+			productFind := NewProductFind(productRepo)
+			success := productFind.Find(ctx, c.in, output)
 
 			productRepo.AssertExpectations(t)
 			output.AssertExpectations(t)
@@ -110,8 +110,8 @@ func TestProductFind_Find_Get_Filed(t *testing.T) {
 		Err: ProductFindFailedErrorMessages.Failed(1),
 	})
 
-	productFind := NewProductFind(output, productRepo)
-	success := productFind.Find(ctx, 1)
+	productFind := NewProductFind(productRepo)
+	success := productFind.Find(ctx, 1, output)
 
 	productRepo.AssertExpectations(t)
 	output.AssertExpectations(t)
@@ -129,8 +129,8 @@ func TestProductFind_Find_Get_NotFound(t *testing.T) {
 		Err: ProductFindFailedErrorMessages.NotFound(1),
 	})
 
-	productFind := NewProductFind(output, productRepo)
-	success := productFind.Find(ctx, 1)
+	productFind := NewProductFind(productRepo)
+	success := productFind.Find(ctx, 1, output)
 
 	productRepo.AssertExpectations(t)
 	output.AssertExpectations(t)
