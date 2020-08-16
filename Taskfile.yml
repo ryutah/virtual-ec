@@ -24,3 +24,16 @@ tasks:
     desc: "開発環境Dockerイメージのビルド"
     cmds:
       - .develop/build.sh
+
+  format:
+    desc: "コードフォーマットを実行する"
+    cmds:
+      - goimports -w -l ./
+
+  openapi:
+    desc: "OpenAPIを利用したコード生成"
+    cmds:
+      - rm -f ./adapter/rest/admin/api_gen.go ./adapter/rest/admin/api_type_gen.go
+      - oapi-codegen -generate chi-server -package admin ./documents/admin/openapi.yaml > ./adapter/rest/admin/api_gen.go
+      - oapi-codegen -generate types -package admin ./documents/admin/openapi.yaml > ./adapter/rest/admin/api_type_gen.go
+      - task: format
