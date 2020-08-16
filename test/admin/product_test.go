@@ -6,6 +6,7 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/ryutah/virtual-ec/infrastructure/firestore"
+	"github.com/ryutah/virtual-ec/lib/xfirestore"
 	"github.com/ryutah/virtual-ec/usecase/admin"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -61,21 +62,21 @@ func TestProduct_CreateAndConfirm(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer client.Close()
-	productRepo := firestore.NewProduct(client)
+	productRepo := firestore.NewProduct(xfirestore.NewClient(client))
 
 	Convey("商品を追加して追加された商品の情報を確認する", t, func() {
 		Convey("新商品を作成する", func() {
 			createOutputPort := new(productCreateOutputPort)
-			success := admin.NewProductCreate(createOutputPort, productRepo).Create(ctx, productCreateInput{
+			success := admin.NewProductCreate(productRepo).Create(ctx, productCreateInput{
 				name:  "新商品",
 				price: 1000,
-			})
+			}, createOutputPort)
 			Convey("作成が正常に終了する", func() {
 				So(success, ShouldBeTrue)
 			})
 			Convey("生成されたIDを指定してProductを取得する", func() {
 				findOutputPort := new(productFindOutputPort)
-				success := admin.NewProductFind(findOutputPort, productRepo).Find(ctx, createOutputPort.success.ID)
+				success := admin.NewProductFind(productRepo).Find(ctx, createOutputPort.success.ID, findOutputPort)
 				Convey("取得が正常に終了する", func() {
 					So(success, ShouldBeTrue)
 				})
