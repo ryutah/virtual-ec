@@ -3,8 +3,9 @@
 package xfirestore
 
 import (
-	"cloud.google.com/go/datastore"
 	"context"
+
+	"cloud.google.com/go/datastore"
 )
 
 // DatastoreClient is an interface generated for "cloud.google.com/go/datastore.Client".

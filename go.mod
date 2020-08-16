@@ -5,6 +5,9 @@ go 1.14
 require (
 	cloud.google.com/go v0.63.0 // indirect
 	cloud.google.com/go/datastore v1.2.0
+	github.com/deepmap/oapi-codegen v1.3.11
+	github.com/go-chi/chi v4.0.2+incompatible
+	github.com/go-chi/render v1.0.1
 	github.com/kr/text v0.2.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pkg/errors v0.9.1

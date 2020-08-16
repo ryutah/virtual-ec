@@ -2,9 +2,6 @@
 
 package xfirestore
 
-import (
-)
-
 // cursor is an interface generated for "cloud.google.com/go/datastore.Cursor".
 type cursor interface {
 	String() string

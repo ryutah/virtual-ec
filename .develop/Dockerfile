@@ -14,5 +14,8 @@ RUN wget -q https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz \
  && echo 'export PATH=${PATH}:/usr/local/go/bin:/root/go/bin' >> .bashrc \
  && rm -f go${GO_VERSION}.linux-amd64.tar.gz
 
-RUN /usr/local/go/bin/go get -u \
-      github.com/rjeczalik/interfaces/cmd/interfacer
+# Install Golang tools
+RUN GO111MODULE=on /usr/local/go/bin/go get -u \
+      golang.org/x/tools/cmd/goimports \
+      github.com/rjeczalik/interfaces/cmd/interfacer \
+      github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.3.11
