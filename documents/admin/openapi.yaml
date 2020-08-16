@@ -1,0 +1,124 @@
+openapi: 3.0.1
+info:
+  title: VirtualEC 管理機能API
+  version: 0.0.1
+servers:
+  - url: /api
+paths:
+  /products:
+    get:
+      operationId: productSearch
+      tags:
+        - product
+      description: |
+        Productの検索を行う
+      parameters:
+        - name: name
+          in: query
+          required: false
+          description: Product名の前方一致検索をする
+          schema:
+            type: string
+            example: product
+      responses:
+        200:
+          $ref: "#/components/responses/ProductSearchSuccess"
+        500:
+          $ref: "#/components/responses/ProductSearchFailed"
+
+  /products/{product_id}:
+    get:
+      operationId: productGet
+      tags:
+        - product
+      description: |
+        Productの詳細情報を取得する
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: ProductのID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        200:
+          $ref: "#/components/responses/ProductGetSuccess"
+        404:
+          $ref: "#/components/responses/ProductGetNotFound"
+        500:
+          $ref: "#/components/responses/ProductGetFailed"
+
+components:
+  responses:
+    ProductSearchSuccess:
+      description: "検索成功"
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - products
+            properties:
+              products:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    ProductSearchFailed:
+      description: "検索失敗"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ProductGetSuccess:
+      description: "成功"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Product"
+    ProductGetNotFound:
+      description: "Not Found"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ProductGetFailed:
+      description: "ServerError"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    Product:
+      type: object
+      required:
+        - id
+        - name
+        - price
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+          readOnly: true
+        name:
+          type: string
+          example: product
+        price:
+          type: integer
+          format: int64
+          example: 100
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: エラーが発生しました
+        details:
+          type: array
+          items:
+            type: string
