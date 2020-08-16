@@ -3,6 +3,7 @@ package admin
 import (
 	"net/http"
 
+	"github.com/ryutah/virtual-ec/adapter/rest/admin/internal"
 	"github.com/ryutah/virtual-ec/usecase/admin"
 )
 
@@ -22,22 +23,22 @@ var (
 )
 
 func (p *productSearchOutputPort) Success(success admin.ProductSearchSuccess) {
-	products := make([]Product, len(success.Products))
+	products := make([]internal.Product, len(success.Products))
 	for i, p := range success.Products {
-		products[i] = Product{
+		products[i] = internal.Product{
 			Id:    int64(p.ID),
 			Name:  p.Name,
 			Price: int64(p.Price),
 		}
 	}
-	p.payloads = ProductSearchSuccess{
+	p.payloads = internal.ProductSearchSuccess{
 		Products: products,
 	}
 	p.statuses = http.StatusOK
 }
 
 func (p *productSearchOutputPort) Failed(failed admin.ProductSearchFailed) {
-	p.payloads = ProductSearchFailed{
+	p.payloads = internal.ProductSearchFailed{
 		Message: failed.Err,
 	}
 	p.statuses = http.StatusInternalServerError

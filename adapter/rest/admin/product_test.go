@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	. "github.com/ryutah/virtual-ec/adapter/rest/admin"
+	"github.com/ryutah/virtual-ec/adapter/rest/admin/internal"
 	"github.com/ryutah/virtual-ec/usecase/admin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -40,7 +41,7 @@ func TestProduct_Search(t *testing.T) {
 		}
 		expected struct {
 			productSearch_search_input ProductSearchInputPort
-			response                   ProductSearchSuccess
+			response                   internal.ProductSearchSuccess
 		}
 	)
 	cases := []struct {
@@ -64,11 +65,11 @@ func TestProduct_Search(t *testing.T) {
 				},
 			},
 			expected: expected{
-				productSearch_search_input: NewProductSearchInputPort(ProductSearchParams{
+				productSearch_search_input: NewProductSearchInputPort(internal.ProductSearchParams{
 					Name: strPtr("product"),
 				}),
-				response: ProductSearchSuccess{
-					Products: []Product{
+				response: internal.ProductSearchSuccess{
+					Products: []internal.Product{
 						{Id: 1, Name: "product1", Price: 1000},
 						{Id: 2, Name: "product2", Price: 2000},
 						{Id: 3, Name: "product3", Price: 3000},
@@ -87,11 +88,11 @@ func TestProduct_Search(t *testing.T) {
 				},
 			},
 			expected: expected{
-				productSearch_search_input: NewProductSearchInputPort(ProductSearchParams{
+				productSearch_search_input: NewProductSearchInputPort(internal.ProductSearchParams{
 					Name: strPtr("product"),
 				}),
-				response: ProductSearchSuccess{
-					Products: []Product{},
+				response: internal.ProductSearchSuccess{
+					Products: []internal.Product{},
 				},
 			},
 		},
@@ -124,7 +125,7 @@ func TestProduct_Search(t *testing.T) {
 			}
 			defer resp.Body.Close()
 
-			var payload ProductSearchSuccess
+			var payload internal.ProductSearchSuccess
 			if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
 				assert.Fail(t, err.Error())
 			}

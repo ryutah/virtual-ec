@@ -33,7 +33,7 @@ tasks:
   openapi:
     desc: "OpenAPIを利用したコード生成"
     cmds:
-      - rm -f ./adapter/rest/admin/api_gen.go ./adapter/rest/admin/api_type_gen.go
-      - oapi-codegen -generate chi-server -package admin ./documents/admin/openapi.yaml > ./adapter/rest/admin/api_gen.go
-      - oapi-codegen -generate types -package admin ./documents/admin/openapi.yaml > ./adapter/rest/admin/api_type_gen.go
+      - rm -f ./adapter/rest/admin/internal/api_gen.go ./adapter/rest/admin/internal/api_type_gen.go
+      - oapi-codegen -generate chi-server -package internal ./documents/admin/openapi.yaml > ./adapter/rest/admin/internal/api_gen.go
+      - oapi-codegen -generate types -package internal ./documents/admin/openapi.yaml > ./adapter/rest/admin/internal/api_type_gen.go
       - task: format

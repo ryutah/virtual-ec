@@ -1,6 +1,6 @@
-//go:generate interfacer -for github.com/ryutah/virtual-ec/usecase/admin.ProductFind -as admin.ProductFinder -o product_finder_gen.go
-//go:generate interfacer -for github.com/ryutah/virtual-ec/usecase/admin.ProductSearch -as admin.ProductSearcher -o product_seacher_gen.go
-//go:generate interfacer -for github.com/ryutah/virtual-ec/usecase/admin.ProductCreate -as admin.ProductCreator -o product_creator_gen.go
+//go:generate interfacer -for github.com/ryutah/virtual-ec/usecase/admin.ProductFind -as internal.ProductFinder -o internal/product_finder_gen.go
+//go:generate interfacer -for github.com/ryutah/virtual-ec/usecase/admin.ProductSearch -as internal.ProductSearcher -o internal/product_seacher_gen.go
+//go:generate interfacer -for github.com/ryutah/virtual-ec/usecase/admin.ProductCreate -as internal.ProductCreator -o internal/product_creator_gen.go
 
 package admin
 
@@ -9,14 +9,15 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/ryutah/virtual-ec/adapter/rest/admin/internal"
 )
 
-func NewHandler(s ServerInterface) http.Handler {
+func NewHandler(s internal.ServerInterface) http.Handler {
 	mux := chi.NewRouter()
 	mux.Use(middleware.StripSlashes)
 
 	mux.Route("/api", func(r chi.Router) {
-		HandlerFromMux(s, r)
+		internal.HandlerFromMux(s, r)
 	})
 	return mux
 }
@@ -25,7 +26,7 @@ type Server struct {
 	*ProductEndpoint
 }
 
-var _ ServerInterface = (*Server)(nil)
+var _ internal.ServerInterface = (*Server)(nil)
 
 func NewServer(product *ProductEndpoint) *Server {
 	return &Server{

@@ -4,20 +4,21 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
+	"github.com/ryutah/virtual-ec/adapter/rest/admin/internal"
 )
 
 type ProductEndpoint struct {
 	usecase struct {
-		searcher ProductSearcher
-		finder   ProductFinder
+		searcher internal.ProductSearcher
+		finder   internal.ProductFinder
 	}
 }
 
-func NewProductEndpoint(seacher ProductSearcher) *ProductEndpoint {
+func NewProductEndpoint(seacher internal.ProductSearcher) *ProductEndpoint {
 	return &ProductEndpoint{
 		usecase: struct {
-			searcher ProductSearcher
-			finder   ProductFinder
+			searcher internal.ProductSearcher
+			finder   internal.ProductFinder
 		}{
 			searcher: seacher,
 		},
@@ -25,7 +26,7 @@ func NewProductEndpoint(seacher ProductSearcher) *ProductEndpoint {
 }
 
 // (GET /products)
-func (p *ProductEndpoint) ProductSearch(w http.ResponseWriter, r *http.Request, params ProductSearchParams) {
+func (p *ProductEndpoint) ProductSearch(w http.ResponseWriter, r *http.Request, params internal.ProductSearchParams) {
 	out := new(productSearchOutputPort)
 	_ = p.usecase.searcher.Search(r.Context(), newProductSearchInputPort(params), out)
 	w.WriteHeader(out.status())
