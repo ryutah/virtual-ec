@@ -17,7 +17,7 @@ import (
 )
 
 type mockProductSearcher struct {
-	admin.ProductSearch
+	internal.ProductSearcher
 	mock.Mock
 }
 
