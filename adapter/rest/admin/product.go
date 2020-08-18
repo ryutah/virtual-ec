@@ -14,13 +14,14 @@ type ProductEndpoint struct {
 	}
 }
 
-func NewProductEndpoint(seacher internal.ProductSearcher) *ProductEndpoint {
+func NewProductEndpoint(seacher internal.ProductSearcher, finder internal.ProductFinder) *ProductEndpoint {
 	return &ProductEndpoint{
 		usecase: struct {
 			searcher internal.ProductSearcher
 			finder   internal.ProductFinder
 		}{
 			searcher: seacher,
+			finder:   finder,
 		},
 	}
 }
@@ -35,7 +36,10 @@ func (p *ProductEndpoint) ProductSearch(w http.ResponseWriter, r *http.Request, 
 
 // (GET /products/{product_id})
 func (p *ProductEndpoint) ProductGet(w http.ResponseWriter, r *http.Request, productId int64) {
-	panic("not implemented") // TODO: Implement
+	out := new(productFindOutputPort)
+	_ = p.usecase.finder.Find(r.Context(), int(productId), out)
+	w.WriteHeader(out.status())
+	render.JSON(w, r, out.payload())
 }
 
 // (POST /products)
