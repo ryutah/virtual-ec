@@ -9,7 +9,7 @@ import (
 
 func TestNewHandler(t *testing.T) {
 	handler := NewHandler(
-		NewProductEndpoint(new(mockProductSearcher), new(mockProductFinder)),
+		NewProductEndpoint(new(mockProductSearcher), new(mockProductFinder), new(mockProductCreator)),
 	)
 	assert.NotNil(t, handler)
 }

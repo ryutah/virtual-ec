@@ -42,6 +42,20 @@ func (m *mockProductFinder) Find(ctx context.Context, productID int, out admin.P
 	return args.Bool(0)
 }
 
+type mockProductCreator struct {
+	internal.ProductCreator
+	mock.Mock
+}
+
+func (m *mockProductCreator) onCreate(ctx, adminProductCreateInputPort, adminProductCreateOutputPort interface{}) *mock.Call {
+	return m.On("Create", ctx, adminProductCreateInputPort, adminProductCreateOutputPort)
+}
+
+func (m *mockProductCreator) Create(ctx context.Context, in admin.ProductCreateInputPort, out admin.ProductCreateOutputPort) bool {
+	args := m.Called(ctx, in, out)
+	return args.Bool(0)
+}
+
 func TestProduct_Search(t *testing.T) {
 	type (
 		mocks struct {
@@ -343,4 +357,84 @@ func TestProduct_Get_Failed(t *testing.T) {
 	finder.AssertExpectations(t)
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	assert.Equal(t, ServerError{Message: "server error"}, payload)
+}
+
+func TestProduct_Create(t *testing.T) {
+	type (
+		mocks struct {
+			call_productCreateOutputPort_productCreateSuccess admin.ProductCreateSuccess
+		}
+		expected struct {
+			productCreate_create_inputPort ProductCreateInputPort
+			statusCode                     int
+			response                       ProductCreateSuccess
+		}
+	)
+	cases := []struct {
+		name     string
+		in       ProductCreateJSONRequestBody
+		mocks    mocks
+		expected expected
+	}{
+		{
+			name: "正常系",
+			in: ProductCreateJSONRequestBody{
+				Name:  "product1",
+				Price: 1000,
+			},
+			mocks: mocks{
+				call_productCreateOutputPort_productCreateSuccess: admin.ProductCreateSuccess{
+					ID:    1,
+					Name:  "product1",
+					Price: 1000,
+				},
+			},
+			expected: expected{
+				productCreate_create_inputPort: NewProductCreateInputPort(internal.ProductCreateJSONRequestBody{
+					Name:  "product1",
+					Price: 1000,
+				}),
+				statusCode: http.StatusCreated,
+				response: ProductCreateSuccess{
+					Id:    1,
+					Name:  "product1",
+					Price: 1000,
+				},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			// define usecase mock and set call behavior
+			creator := new(mockProductCreator)
+			creator.
+				onCreate(mock.Anything, c.expected.productCreate_create_inputPort, mock.Anything).
+				Return(true).
+				Run(func(args mock.Arguments) {
+					out := args.Get(2).(admin.ProductCreateOutputPort)
+					out.Success(c.mocks.call_productCreateOutputPort_productCreateSuccess)
+				})
+
+			client, finish := startTestServerAndNewClient(withProductCreator(creator))
+			defer finish()
+
+			resp, err := client.ProductCreate(ctx, c.in)
+			if err != nil {
+				assert.Fail(t, err.Error())
+			}
+			defer resp.Body.Close()
+
+			var payload ProductCreateSuccess
+			if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+				assert.Fail(t, err.Error())
+			}
+
+			creator.AssertExpectations(t)
+			assert.Equal(t, c.expected.statusCode, resp.StatusCode)
+			assert.Equal(t, c.expected.response, payload)
+		})
+	}
 }

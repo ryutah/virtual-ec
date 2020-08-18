@@ -92,3 +92,34 @@ func (p *productFindOutputPort) status() int {
 func (p *productFindOutputPort) payload() interface{} {
 	return p.payloads
 }
+
+type productCreateOutputPort struct {
+	statuses int
+	payloads interface{}
+}
+
+var (
+	_ admin.ProductCreateOutputPort = (*productCreateOutputPort)(nil)
+	_ resultGetter                  = (*productCreateOutputPort)(nil)
+)
+
+func (p *productCreateOutputPort) Success(success admin.ProductCreateSuccess) {
+	p.payloads = internal.ProductCreateSuccess{
+		Id:    int64(success.ID),
+		Name:  success.Name,
+		Price: int64(success.Price),
+	}
+	p.statuses = http.StatusCreated
+}
+
+func (p *productCreateOutputPort) Failed(_ admin.ProductCreateFailed) {
+	panic("not implemented") // TODO: Implement
+}
+
+func (p *productCreateOutputPort) status() int {
+	return p.statuses
+}
+
+func (p *productCreateOutputPort) payload() interface{} {
+	return p.payloads
+}

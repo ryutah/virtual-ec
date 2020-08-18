@@ -23,3 +23,23 @@ func (p productSearchInputPort) Name() string {
 	}
 	return *p.params.Name
 }
+
+type productCreateInputPort struct {
+	params internal.ProductCreateJSONRequestBody
+}
+
+var _ admin.ProductCreateInputPort = productCreateInputPort{}
+
+func newProductCreateInputPort(p internal.ProductCreateJSONRequestBody) productCreateInputPort {
+	return productCreateInputPort{
+		params: p,
+	}
+}
+
+func (p productCreateInputPort) Name() string {
+	return p.params.Name
+}
+
+func (p productCreateInputPort) Price() int {
+	return int(p.params.Price)
+}

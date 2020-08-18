@@ -11,17 +11,20 @@ type ProductEndpoint struct {
 	usecase struct {
 		searcher internal.ProductSearcher
 		finder   internal.ProductFinder
+		creator  internal.ProductCreator
 	}
 }
 
-func NewProductEndpoint(seacher internal.ProductSearcher, finder internal.ProductFinder) *ProductEndpoint {
+func NewProductEndpoint(seacher internal.ProductSearcher, finder internal.ProductFinder, creator internal.ProductCreator) *ProductEndpoint {
 	return &ProductEndpoint{
 		usecase: struct {
 			searcher internal.ProductSearcher
 			finder   internal.ProductFinder
+			creator  internal.ProductCreator
 		}{
 			searcher: seacher,
 			finder:   finder,
+			creator:  creator,
 		},
 	}
 }
@@ -44,5 +47,12 @@ func (p *ProductEndpoint) ProductGet(w http.ResponseWriter, r *http.Request, pro
 
 // (POST /products)
 func (p *ProductEndpoint) ProductCreate(w http.ResponseWriter, r *http.Request) {
-	panic("not implemented") // TODO: Implement
+	var payload internal.ProductCreateJSONRequestBody
+	_ = render.DecodeJSON(r.Body, &payload)
+
+	out := new(productCreateOutputPort)
+	_ = p.usecase.creator.Create(r.Context(), newProductCreateInputPort(payload), out)
+
+	render.Status(r, out.status())
+	render.JSON(w, r, out.payload())
 }
