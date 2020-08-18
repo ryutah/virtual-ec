@@ -1,57 +1,15 @@
-//go:generate oapi-codegen -generate client,types -package admin_test -o client_gen_test.go ../../../documents/admin/openapi.yaml
-
 package admin_test
 
 import (
-	"fmt"
-	"net/http/httptest"
+	"testing"
 
 	. "github.com/ryutah/virtual-ec/adapter/rest/admin"
-	"github.com/ryutah/virtual-ec/adapter/rest/admin/internal"
+	"github.com/stretchr/testify/assert"
 )
 
-func strPtr(s string) *string {
-	return &s
-}
-
-type testServerConfig struct {
-	productFinder   internal.ProductFinder
-	productSearcher internal.ProductSearcher
-}
-
-func newTestServerConfig(opts ...testServerOption) testServerConfig {
-	conf := testServerConfig{
-		productFinder:   new(mockProductFinder),
-		productSearcher: new(mockProductSearcher),
-	}
-	for _, opt := range opts {
-		opt(&conf)
-	}
-	return conf
-}
-
-type testServerOption func(*testServerConfig)
-
-func withProductFinder(finder internal.ProductFinder) testServerOption {
-	return func(c *testServerConfig) {
-		c.productFinder = finder
-	}
-}
-
-func withProductSearcher(seacher internal.ProductSearcher) testServerOption {
-	return func(c *testServerConfig) {
-		c.productSearcher = seacher
-	}
-}
-
-func startTestServerAndNewClient(opts ...testServerOption) (client *Client, finish func()) {
-	conf := newTestServerConfig(opts...)
-	handler := NewHandler(NewServer(NewProductEndpoint(conf.productSearcher, conf.productFinder)))
-	s := httptest.NewServer(handler)
-
-	client, err := NewClient(fmt.Sprintf("%s/api", s.URL))
-	if err != nil {
-		panic(err)
-	}
-	return client, s.Close
+func TestNewHandler(t *testing.T) {
+	handler := NewHandler(
+		NewProductEndpoint(new(mockProductSearcher), new(mockProductFinder)),
+	)
+	assert.NotNil(t, handler)
 }

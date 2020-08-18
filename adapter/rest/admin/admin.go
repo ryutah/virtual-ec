@@ -13,24 +13,24 @@ import (
 	"github.com/ryutah/virtual-ec/adapter/rest/admin/internal"
 )
 
-func NewHandler(s internal.ServerInterface) http.Handler {
+func NewHandler(product *ProductEndpoint) http.Handler {
 	mux := chi.NewRouter()
 	mux.Use(middleware.StripSlashes)
 
 	mux.Route("/api", func(r chi.Router) {
-		internal.HandlerFromMux(s, r)
+		internal.HandlerFromMux(newServer(product), r)
 	})
 	return mux
 }
 
-type Server struct {
+type server struct {
 	*ProductEndpoint
 }
 
-var _ internal.ServerInterface = (*Server)(nil)
+var _ internal.ServerInterface = (*server)(nil)
 
-func NewServer(product *ProductEndpoint) *Server {
-	return &Server{
+func newServer(product *ProductEndpoint) *server {
+	return &server{
 		ProductEndpoint: product,
 	}
 }

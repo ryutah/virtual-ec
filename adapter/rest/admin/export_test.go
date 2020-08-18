@@ -7,3 +7,9 @@ type ProductSearchInputPort = productSearchInputPort
 func NewProductSearchInputPort(p internal.ProductSearchParams) ProductSearchInputPort {
 	return newProductSearchInputPort(p)
 }
+
+func NewServer(product *ProductEndpoint) *server {
+	return &server{
+		ProductEndpoint: product,
+	}
+}
