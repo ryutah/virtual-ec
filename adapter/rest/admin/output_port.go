@@ -7,20 +7,24 @@ import (
 	"github.com/ryutah/virtual-ec/usecase/admin"
 )
 
-type resultGetter interface {
-	status() int
-	payload() interface{}
+type outputPortBase struct {
+	_status  int
+	_payload interface{}
+}
+
+func (p outputPortBase) status() int {
+	return p._status
+}
+
+func (p outputPortBase) payload() interface{} {
+	return p._payload
 }
 
 type productSearchOutputPort struct {
-	statuses int
-	payloads interface{}
+	outputPortBase
 }
 
-var (
-	_ admin.ProductSearchOutputPort = (*productSearchOutputPort)(nil)
-	_ resultGetter                  = (*productSearchOutputPort)(nil)
-)
+var _ admin.ProductSearchOutputPort = (*productSearchOutputPort)(nil)
 
 func (p *productSearchOutputPort) Success(success admin.ProductSearchSuccess) {
 	products := make([]internal.Product, len(success.Products))
@@ -31,95 +35,63 @@ func (p *productSearchOutputPort) Success(success admin.ProductSearchSuccess) {
 			Price: int64(p.Price),
 		}
 	}
-	p.payloads = internal.ProductSearchSuccess{
+	p._payload = internal.ProductSearchSuccess{
 		Products: products,
 	}
-	p.statuses = http.StatusOK
+	p._status = http.StatusOK
 }
 
 func (p *productSearchOutputPort) Failed(failed admin.ProductSearchFailed) {
-	p.payloads = internal.ServerError{
+	p._payload = internal.ServerError{
 		Message: failed.Err,
 	}
-	p.statuses = http.StatusInternalServerError
-}
-
-func (p *productSearchOutputPort) status() int {
-	return p.statuses
-}
-
-func (p *productSearchOutputPort) payload() interface{} {
-	return p.payloads
+	p._status = http.StatusInternalServerError
 }
 
 type productFindOutputPort struct {
-	statuses int
-	payloads interface{}
+	outputPortBase
 }
 
-var (
-	_ admin.ProductFindOutputPort = (*productFindOutputPort)(nil)
-	_ resultGetter                = (*productFindOutputPort)(nil)
-)
+var _ admin.ProductFindOutputPort = (*productFindOutputPort)(nil)
 
 func (p *productFindOutputPort) Success(success admin.ProductFindSuccess) {
-	p.payloads = internal.ProductGetSuccess{
+	p._payload = internal.ProductGetSuccess{
 		Id:    int64(success.ID),
 		Name:  success.Name,
 		Price: int64(success.Price),
 	}
-	p.statuses = http.StatusOK
+	p._status = http.StatusOK
 }
 
 func (p *productFindOutputPort) NotFound(failed admin.ProductFindFailed) {
-	p.payloads = internal.NotFound{
+	p._payload = internal.NotFound{
 		Message: failed.Err,
 	}
-	p.statuses = http.StatusNotFound
+	p._status = http.StatusNotFound
 }
 
 func (p *productFindOutputPort) Failed(failed admin.ProductFindFailed) {
-	p.payloads = internal.NotFound{
+	p._payload = internal.NotFound{
 		Message: failed.Err,
 	}
-	p.statuses = http.StatusInternalServerError
-}
-
-func (p *productFindOutputPort) status() int {
-	return p.statuses
-}
-
-func (p *productFindOutputPort) payload() interface{} {
-	return p.payloads
+	p._status = http.StatusInternalServerError
 }
 
 type productCreateOutputPort struct {
-	statuses int
-	payloads interface{}
+	outputPortBase
 }
 
-var (
-	_ admin.ProductCreateOutputPort = (*productCreateOutputPort)(nil)
-	_ resultGetter                  = (*productCreateOutputPort)(nil)
-)
+var _ admin.ProductCreateOutputPort = (*productCreateOutputPort)(nil)
 
 func (p *productCreateOutputPort) Success(success admin.ProductCreateSuccess) {
-	p.payloads = internal.ProductCreateSuccess{
+	p._payload = internal.ProductCreateSuccess{
 		Id:    int64(success.ID),
 		Name:  success.Name,
 		Price: int64(success.Price),
 	}
-	p.statuses = http.StatusCreated
+	p._status = http.StatusCreated
 }
 
 func (p *productCreateOutputPort) Failed(_ admin.ProductCreateFailed) {
 	panic("not implemented") // TODO: Implement
-}
-
-func (p *productCreateOutputPort) status() int {
-	return p.statuses
-}
-
-func (p *productCreateOutputPort) payload() interface{} {
-	return p.payloads
 }

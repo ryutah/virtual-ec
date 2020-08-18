@@ -33,7 +33,7 @@ func NewProductEndpoint(seacher internal.ProductSearcher, finder internal.Produc
 func (p *ProductEndpoint) ProductSearch(w http.ResponseWriter, r *http.Request, params internal.ProductSearchParams) {
 	out := new(productSearchOutputPort)
 	_ = p.usecase.searcher.Search(r.Context(), newProductSearchInputPort(params), out)
-	w.WriteHeader(out.status())
+	render.Status(r, out.status())
 	render.JSON(w, r, out.payload())
 }
 
@@ -41,7 +41,7 @@ func (p *ProductEndpoint) ProductSearch(w http.ResponseWriter, r *http.Request, 
 func (p *ProductEndpoint) ProductGet(w http.ResponseWriter, r *http.Request, productId int64) {
 	out := new(productFindOutputPort)
 	_ = p.usecase.finder.Find(r.Context(), int(productId), out)
-	w.WriteHeader(out.status())
+	render.Status(r, out.status())
 	render.JSON(w, r, out.payload())
 }
 
