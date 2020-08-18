@@ -4,10 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
-	"net/http/httptest"
-	"net/url"
 	"testing"
 
 	. "github.com/ryutah/virtual-ec/adapter/rest/admin"
@@ -45,10 +42,6 @@ func (m *mockProductFinder) Find(ctx context.Context, productID int, out admin.P
 	return args.Bool(0)
 }
 
-func strPtr(s string) *string {
-	return &s
-}
-
 func TestProduct_Search(t *testing.T) {
 	type (
 		mocks struct {
@@ -57,19 +50,19 @@ func TestProduct_Search(t *testing.T) {
 		expected struct {
 			productSearch_search_input ProductSearchInputPort
 			statusCode                 int
-			response                   internal.ProductSearchSuccess
+			response                   ProductSearchSuccess
 		}
 	)
 	cases := []struct {
 		name     string
-		in       url.Values
+		in       *ProductSearchParams
 		mocks    mocks
 		expected expected
 	}{
 		{
 			name: "複数件取得",
-			in: url.Values{
-				"name": []string{"product"},
+			in: &ProductSearchParams{
+				Name: strPtr("product"),
 			},
 			mocks: mocks{
 				call_productSearchOutputPort_productSearchSuccess: admin.ProductSearchSuccess{
@@ -85,8 +78,32 @@ func TestProduct_Search(t *testing.T) {
 					Name: strPtr("product"),
 				}),
 				statusCode: http.StatusOK,
-				response: internal.ProductSearchSuccess{
-					Products: []internal.Product{
+				response: ProductSearchSuccess{
+					Products: []Product{
+						{Id: 1, Name: "product1", Price: 1000},
+						{Id: 2, Name: "product2", Price: 2000},
+						{Id: 3, Name: "product3", Price: 3000},
+					},
+				},
+			},
+		},
+		{
+			name: "検索条件未指定",
+			in:   &ProductSearchParams{},
+			mocks: mocks{
+				call_productSearchOutputPort_productSearchSuccess: admin.ProductSearchSuccess{
+					Products: []*admin.ProductSearchProductDetail{
+						{ID: 1, Name: "product1", Price: 1000},
+						{ID: 2, Name: "product2", Price: 2000},
+						{ID: 3, Name: "product3", Price: 3000},
+					},
+				},
+			},
+			expected: expected{
+				productSearch_search_input: NewProductSearchInputPort(internal.ProductSearchParams{}),
+				statusCode:                 http.StatusOK,
+				response: ProductSearchSuccess{
+					Products: []Product{
 						{Id: 1, Name: "product1", Price: 1000},
 						{Id: 2, Name: "product2", Price: 2000},
 						{Id: 3, Name: "product3", Price: 3000},
@@ -96,8 +113,8 @@ func TestProduct_Search(t *testing.T) {
 		},
 		{
 			name: "0件",
-			in: url.Values{
-				"name": []string{"product"},
+			in: &ProductSearchParams{
+				Name: strPtr("product"),
 			},
 			mocks: mocks{
 				call_productSearchOutputPort_productSearchSuccess: admin.ProductSearchSuccess{
@@ -109,8 +126,8 @@ func TestProduct_Search(t *testing.T) {
 					Name: strPtr("product"),
 				}),
 				statusCode: http.StatusOK,
-				response: internal.ProductSearchSuccess{
-					Products: []internal.Product{},
+				response: ProductSearchSuccess{
+					Products: []Product{},
 				},
 			},
 		},
@@ -130,20 +147,16 @@ func TestProduct_Search(t *testing.T) {
 					out.Success(c.mocks.call_productSearchOutputPort_productSearchSuccess)
 				})
 
-			handler := NewHandler(NewServer(NewProductEndpoint(searcher, new(mockProductFinder))))
-			s := httptest.NewServer(handler)
-			defer s.Close()
+			client, finish := startTestServerAndNewClient(withProductSearcher(searcher))
+			defer finish()
 
-			req, _ := http.NewRequestWithContext(
-				ctx, http.MethodGet, fmt.Sprintf("%s/api/products?%s", s.URL, c.in.Encode()), nil,
-			)
-			resp, err := http.DefaultClient.Do(req)
+			resp, err := client.ProductSearch(ctx, c.in)
 			if err != nil {
 				assert.Fail(t, err.Error())
 			}
 			defer resp.Body.Close()
 
-			var payload internal.ProductSearchSuccess
+			var payload ProductSearchSuccess
 			if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
 				assert.Fail(t, err.Error())
 			}
@@ -171,27 +184,23 @@ func TestProduct_Search_Failed(t *testing.T) {
 			})
 		})
 
-	handler := NewHandler(NewServer(NewProductEndpoint(searcher, new(mockProductFinder))))
-	s := httptest.NewServer(handler)
-	defer s.Close()
+	client, finish := startTestServerAndNewClient(withProductSearcher(searcher))
+	defer finish()
 
-	req, _ := http.NewRequestWithContext(
-		ctx, http.MethodGet, fmt.Sprintf("%s/api/products", s.URL), nil,
-	)
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.ProductSearch(ctx, new(ProductSearchParams))
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
 	defer resp.Body.Close()
 
-	var payload internal.ServerError
+	var payload ServerError
 	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
 		assert.Fail(t, err.Error())
 	}
 
 	searcher.AssertExpectations(t)
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-	assert.Equal(t, internal.ServerError{Message: dummeyErr.Error()}, payload)
+	assert.Equal(t, ServerError{Message: dummeyErr.Error()}, payload)
 }
 
 func TestProduct_Get(t *testing.T) {
@@ -202,12 +211,12 @@ func TestProduct_Get(t *testing.T) {
 		expected struct {
 			productFind_get_productID int
 			statusCode                int
-			response                  internal.ProductGetSuccess
+			response                  ProductGetSuccess
 		}
 	)
 	cases := []struct {
 		name     string
-		in       int
+		in       int64
 		mocks    mocks
 		expected expected
 	}{
@@ -224,7 +233,7 @@ func TestProduct_Get(t *testing.T) {
 			expected: expected{
 				productFind_get_productID: 1,
 				statusCode:                http.StatusOK,
-				response: internal.ProductGetSuccess{
+				response: ProductGetSuccess{
 					Id:    1,
 					Name:  "product1",
 					Price: 1000,
@@ -247,20 +256,16 @@ func TestProduct_Get(t *testing.T) {
 					out.Success(c.mocks.call_productFindOutpuPort_productGetSucecss)
 				})
 
-			handler := NewHandler(NewServer(NewProductEndpoint(new(mockProductSearcher), finder)))
-			s := httptest.NewServer(handler)
-			defer s.Close()
+			client, finish := startTestServerAndNewClient(withProductFinder(finder))
+			defer finish()
 
-			req, _ := http.NewRequestWithContext(
-				ctx, http.MethodGet, fmt.Sprintf("%s/api/products/%d", s.URL, c.in), nil,
-			)
-			resp, err := http.DefaultClient.Do(req)
+			resp, err := client.ProductGet(ctx, c.in)
 			if err != nil {
 				assert.Fail(t, err.Error())
 			}
 			defer resp.Body.Close()
 
-			var payload internal.ProductGetSuccess
+			var payload ProductGetSuccess
 			if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
 				assert.Fail(t, err.Error())
 			}
@@ -287,27 +292,23 @@ func TestProduct_Get_NotFound(t *testing.T) {
 			})
 		})
 
-	handler := NewHandler(NewServer(NewProductEndpoint(new(mockProductSearcher), finder)))
-	s := httptest.NewServer(handler)
-	defer s.Close()
+	client, finish := startTestServerAndNewClient(withProductFinder(finder))
+	defer finish()
 
-	req, _ := http.NewRequestWithContext(
-		ctx, http.MethodGet, fmt.Sprintf("%s/api/products/%d", s.URL, 1), nil,
-	)
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.ProductGet(ctx, 1)
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
 	defer resp.Body.Close()
 
-	var payload internal.NotFound
+	var payload NotFound
 	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
 		assert.Fail(t, err.Error())
 	}
 
 	finder.AssertExpectations(t)
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-	assert.Equal(t, internal.NotFound{Message: "not found"}, payload)
+	assert.Equal(t, NotFound{Message: "not found"}, payload)
 }
 
 func TestProduct_Get_Failed(t *testing.T) {
@@ -325,25 +326,21 @@ func TestProduct_Get_Failed(t *testing.T) {
 			})
 		})
 
-	handler := NewHandler(NewServer(NewProductEndpoint(new(mockProductSearcher), finder)))
-	s := httptest.NewServer(handler)
-	defer s.Close()
+	client, finish := startTestServerAndNewClient(withProductFinder(finder))
+	defer finish()
 
-	req, _ := http.NewRequestWithContext(
-		ctx, http.MethodGet, fmt.Sprintf("%s/api/products/%d", s.URL, 1), nil,
-	)
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.ProductGet(ctx, 1)
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
 	defer resp.Body.Close()
 
-	var payload internal.ServerError
+	var payload ServerError
 	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
 		assert.Fail(t, err.Error())
 	}
 
 	finder.AssertExpectations(t)
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
-	assert.Equal(t, internal.ServerError{Message: "server error"}, payload)
+	assert.Equal(t, ServerError{Message: "server error"}, payload)
 }

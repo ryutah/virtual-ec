@@ -1,6 +1,7 @@
 //go:generate interfacer -for github.com/ryutah/virtual-ec/usecase/admin.ProductFind -as internal.ProductFinder -o internal/product_finder_gen.go
 //go:generate interfacer -for github.com/ryutah/virtual-ec/usecase/admin.ProductSearch -as internal.ProductSearcher -o internal/product_seacher_gen.go
 //go:generate interfacer -for github.com/ryutah/virtual-ec/usecase/admin.ProductCreate -as internal.ProductCreator -o internal/product_creator_gen.go
+//go:generate oapi-codegen -generate chi-server,types -package internal -o internal/openapi_gen.go ../../../documents/admin/openapi.yaml
 
 package admin
 

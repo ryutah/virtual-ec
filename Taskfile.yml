@@ -6,8 +6,9 @@ tasks:
   test:
     desc: "テスト実行"
     cmds:
-      - go test -cover ./domain/... ./infrastructure/... ./usecase/... ./lib/...
+      - go test -cover ./adapter/... ./domain/... ./infrastructure/... ./usecase/... ./lib/...
     sources:
+      - "adapter/**/*.go"
       - "domain/**/*.go"
       - "infrastructure/**/*.go"
       - "usecase/**/*.go"
@@ -30,10 +31,9 @@ tasks:
     cmds:
       - goimports -w -l ./
 
-  openapi:
-    desc: "OpenAPIを利用したコード生成"
+  generate:
+    desc: "go generateを実行する"
     cmds:
-      - rm -f ./adapter/rest/admin/internal/api_gen.go ./adapter/rest/admin/internal/api_type_gen.go
-      - oapi-codegen -generate chi-server -package internal ./documents/admin/openapi.yaml > ./adapter/rest/admin/internal/api_gen.go
-      - oapi-codegen -generate types -package internal ./documents/admin/openapi.yaml > ./adapter/rest/admin/internal/api_type_gen.go
+      - rm -f ./adapter/rest/admin/internal/openapi_gen.go
+      - go generate ./...
       - task: format
