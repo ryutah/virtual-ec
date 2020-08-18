@@ -24,7 +24,20 @@ paths:
         200:
           $ref: "#/components/responses/ProductSearchSuccess"
         500:
-          $ref: "#/components/responses/ProductSearchFailed"
+          $ref: "#/components/responses/ServerError"
+    post:
+      operationId: productCreate
+      tags:
+        - product
+      description: |
+        Productを新規作成する
+      requestBody:
+        $ref: "#/components/requestBodies/ProductCreate"
+      responses:
+        201:
+          $ref: "#/components/responses/ProductCreateSuccess"
+        500:
+          $ref: "#/components/responses/ServerError"
 
   /products/{product_id}:
     get:
@@ -46,11 +59,18 @@ paths:
         200:
           $ref: "#/components/responses/ProductGetSuccess"
         404:
-          $ref: "#/components/responses/ProductGetNotFound"
+          $ref: "#/components/responses/NotFound"
         500:
-          $ref: "#/components/responses/ProductGetFailed"
+          $ref: "#/components/responses/ServerError"
 
 components:
+  requestBodies:
+    ProductCreate:
+      description: "作成するProductの情報"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Product"
   responses:
     ProductSearchSuccess:
       description: "検索成功"
@@ -77,14 +97,20 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Product"
-    ProductGetNotFound:
+    ProductCreateSuccess:
+      description: "成功"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Product"
+    NotFound:
       description: "Not Found"
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
-    ProductGetFailed:
-      description: "ServerError"
+    ServerError:
+      description: "Server Error"
       content:
         application/json:
           schema:

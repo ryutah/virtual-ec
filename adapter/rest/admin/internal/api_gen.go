@@ -17,6 +17,9 @@ type ServerInterface interface {
 	// (GET /products)
 	ProductSearch(w http.ResponseWriter, r *http.Request, params ProductSearchParams)
 
+	// (POST /products)
+	ProductCreate(w http.ResponseWriter, r *http.Request)
+
 	// (GET /products/{product_id})
 	ProductGet(w http.ResponseWriter, r *http.Request, productId int64)
 }
@@ -47,6 +50,13 @@ func (siw *ServerInterfaceWrapper) ProductSearch(w http.ResponseWriter, r *http.
 	}
 
 	siw.Handler.ProductSearch(w, r.WithContext(ctx), params)
+}
+
+// ProductCreate operation middleware
+func (siw *ServerInterfaceWrapper) ProductCreate(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	siw.Handler.ProductCreate(w, r.WithContext(ctx))
 }
 
 // ProductGet operation middleware
@@ -80,6 +90,9 @@ func HandlerFromMux(si ServerInterface, r chi.Router) http.Handler {
 
 	r.Group(func(r chi.Router) {
 		r.Get("/products", wrapper.ProductSearch)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post("/products", wrapper.ProductCreate)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get("/products/{product_id}", wrapper.ProductGet)

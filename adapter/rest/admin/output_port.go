@@ -38,7 +38,7 @@ func (p *productSearchOutputPort) Success(success admin.ProductSearchSuccess) {
 }
 
 func (p *productSearchOutputPort) Failed(failed admin.ProductSearchFailed) {
-	p.payloads = internal.ProductSearchFailed{
+	p.payloads = internal.ServerError{
 		Message: failed.Err,
 	}
 	p.statuses = http.StatusInternalServerError

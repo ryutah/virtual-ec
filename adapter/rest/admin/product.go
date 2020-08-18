@@ -37,3 +37,8 @@ func (p *ProductEndpoint) ProductSearch(w http.ResponseWriter, r *http.Request, 
 func (p *ProductEndpoint) ProductGet(w http.ResponseWriter, r *http.Request, productId int64) {
 	panic("not implemented") // TODO: Implement
 }
+
+// (POST /products)
+func (p *ProductEndpoint) ProductCreate(w http.ResponseWriter, r *http.Request) {
+	panic("not implemented") // TODO: Implement
+}

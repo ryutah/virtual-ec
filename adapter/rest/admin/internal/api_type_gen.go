@@ -16,22 +16,25 @@ type Product struct {
 	Price int64  `json:"price"`
 }
 
-// ProductGetFailed defines model for ProductGetFailed.
-type ProductGetFailed Error
+// NotFound defines model for NotFound.
+type NotFound Error
 
-// ProductGetNotFound defines model for ProductGetNotFound.
-type ProductGetNotFound Error
+// ProductCreateSuccess defines model for ProductCreateSuccess.
+type ProductCreateSuccess Product
 
 // ProductGetSuccess defines model for ProductGetSuccess.
 type ProductGetSuccess Product
-
-// ProductSearchFailed defines model for ProductSearchFailed.
-type ProductSearchFailed Error
 
 // ProductSearchSuccess defines model for ProductSearchSuccess.
 type ProductSearchSuccess struct {
 	Products []Product `json:"products"`
 }
+
+// ServerError defines model for ServerError.
+type ServerError Error
+
+// ProductCreate defines model for ProductCreate.
+type ProductCreate Product
 
 // ProductSearchParams defines parameters for ProductSearch.
 type ProductSearchParams struct {
@@ -39,3 +42,6 @@ type ProductSearchParams struct {
 	// Product名の前方一致検索をする
 	Name *string `json:"name,omitempty"`
 }
+
+// ProductCreateRequestBody defines body for ProductCreate for application/json ContentType.
+type ProductCreateJSONRequestBody ProductCreate
