@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	. "github.com/ryutah/virtual-ec/lib/xlog"
+	. "github.com/ryutah/virtual-ec/pkg/xlog"
 	"github.com/stretchr/testify/mock"
 )
 

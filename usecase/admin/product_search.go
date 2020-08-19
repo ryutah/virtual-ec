@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/ryutah/virtual-ec/domain/repository"
-	"github.com/ryutah/virtual-ec/lib/xlog"
+	"github.com/ryutah/virtual-ec/pkg/xlog"
 )
 
 var productSearchErrorMessages = struct {

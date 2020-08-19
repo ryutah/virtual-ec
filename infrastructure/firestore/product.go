@@ -9,7 +9,7 @@ import (
 	"github.com/ryutah/virtual-ec/domain"
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
-	"github.com/ryutah/virtual-ec/lib/xfirestore"
+	"github.com/ryutah/virtual-ec/pkg/xfirestore"
 	"google.golang.org/api/iterator"
 )
 

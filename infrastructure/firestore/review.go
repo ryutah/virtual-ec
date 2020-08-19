@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
-	"github.com/ryutah/virtual-ec/lib/xfirestore"
+	"github.com/ryutah/virtual-ec/pkg/xfirestore"
 )
 
 var reviewErrMessages = struct {

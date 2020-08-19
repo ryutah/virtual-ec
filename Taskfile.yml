@@ -6,13 +6,13 @@ tasks:
   test:
     desc: "テスト実行"
     cmds:
-      - go test -cover ./adapter/... ./domain/... ./infrastructure/... ./usecase/... ./lib/...
+      - go test -cover ./adapter/... ./domain/... ./infrastructure/... ./usecase/... ./pkg/...
     sources:
       - "adapter/**/*.go"
       - "domain/**/*.go"
       - "infrastructure/**/*.go"
       - "usecase/**/*.go"
-      - "lib/**/*.go"
+      - "pkg/**/*.go"
 
   integration_test:
     desc: "インテグレーションテスト実行"

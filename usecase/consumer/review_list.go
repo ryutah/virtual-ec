@@ -6,7 +6,7 @@ import (
 
 	"github.com/ryutah/virtual-ec/domain/model"
 	"github.com/ryutah/virtual-ec/domain/repository"
-	"github.com/ryutah/virtual-ec/lib/xlog"
+	"github.com/ryutah/virtual-ec/pkg/xlog"
 )
 
 var reviewListErrorMessages = struct {

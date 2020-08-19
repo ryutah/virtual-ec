@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"cloud.google.com/go/datastore"
-	. "github.com/ryutah/virtual-ec/lib/xfirestore"
+	. "github.com/ryutah/virtual-ec/pkg/xfirestore"
 	"github.com/stretchr/testify/mock"
 )
 

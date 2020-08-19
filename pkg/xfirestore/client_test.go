@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	. "github.com/ryutah/virtual-ec/lib/xfirestore"
+	. "github.com/ryutah/virtual-ec/pkg/xfirestore"
 	"github.com/stretchr/testify/mock"
 	"github.com/tj/assert"
 
