@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"cloud.google.com/go/datastore"
-	"github.com/ryutah/virtual-ec/infrastructure/firestore"
+	"github.com/ryutah/virtual-ec/internal/infrastructure/firestore"
 	"github.com/ryutah/virtual-ec/pkg/xfirestore"
-	"github.com/ryutah/virtual-ec/usecase/admin"
+	"github.com/ryutah/virtual-ec/internal/usecase/admin"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
