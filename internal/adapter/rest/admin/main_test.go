@@ -1,4 +1,4 @@
-//go:generate oapi-codegen -generate client,types -package admin_test -o client_gen_test.go ../../../../documents/admin/openapi.yaml
+//go:generate oapi-codegen -generate client,types -package admin_test -o client_gen_test.go ../../../../api/admin/openapi.yaml
 
 package admin_test
 

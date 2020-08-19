@@ -14,7 +14,7 @@ tasks:
   integration_test:
     desc: "インテグレーションテスト実行"
     cmds:
-      - ./script/integration_test.sh
+      - ./scripts/integration_test.sh
     env:
       DATASTORE_EMULATOR_HOST: localhost:1234
 
@@ -31,6 +31,5 @@ tasks:
   generate:
     desc: "go generateを実行する"
     cmds:
-      - rm -f ./adapter/rest/admin/internal/openapi_gen.go
       - go generate ./...
       - task: format
